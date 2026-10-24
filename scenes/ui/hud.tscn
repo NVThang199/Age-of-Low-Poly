@@ -1,0 +1,149 @@
+[gd_scene format=3 uid="uid://506u1kuxxofs"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_h"]
+[ext_resource type="Script" path="res://scripts/ui/minimap.gd" id="2_minimap"]
+[ext_resource type="Script" path="res://scripts/ui/selection_box.gd" id="3_selbox"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_h")
+
+[node name="SelectionBox" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_selbox")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="FoodLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Food: 200"
+
+[node name="WoodLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Wood: 200"
+
+[node name="GoldLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Gold: 100"
+
+[node name="StoneLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Stone: 0"
+
+[node name="PopLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Pop: 3/10"
+
+[node name="MinimapContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -210.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="MinimapViewport" type="SubViewportContainer" parent="MinimapContainer"]
+layout_mode = 2
+stretch = true
+script = ExtResource("2_minimap")
+
+[node name="SubViewport" type="SubViewport" parent="MinimapContainer/MinimapViewport"]
+size = Vector2i(200, 200)
+render_target_update_mode = 4
+
+[node name="BuildMenu" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="BuildMenu"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BuildHouseBtn" type="Button" parent="BuildMenu/HBox"]
+layout_mode = 2
+text = "House (Wood:30)"
+
+[node name="BuildBarracksBtn" type="Button" parent="BuildMenu/HBox"]
+layout_mode = 2
+text = "Barracks (Wood:175)"
+
+[node name="BuildMineBtn" type="Button" parent="BuildMenu/HBox"]
+layout_mode = 2
+text = "Mining Camp (Wood:100)"
+
+[node name="CancelBuildBtn" type="Button" parent="BuildMenu/HBox"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="ActionPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -140.0
+offset_right = 320.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="ActionPanel"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="ActionPanel/VBox"]
+layout_mode = 2
+text = "Selected: None"
+
+[node name="QueueLabel" type="Label" parent="ActionPanel/VBox"]
+layout_mode = 2
+text = "Queue: 0"
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="ActionPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TrainBtn" type="Button" parent="ActionPanel/VBox/ButtonsHBox"]
+layout_mode = 2
+text = "Train Unit"
+
+[node name="TrainArcherBtn" type="Button" parent="ActionPanel/VBox/ButtonsHBox"]
+layout_mode = 2
+text = "Train Archer (40W, 30G)"
+
+

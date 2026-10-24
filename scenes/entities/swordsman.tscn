@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://dlblcu334db5k"]
+
+[ext_resource type="Script" path="res://scripts/entities/swordsman.gd" id="1_s"]
+[ext_resource type="PackedScene" path="res://assets/animations/UAL1_Standard.glb" id="2_model1"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_s1"]
+radius = 0.45
+height = 1.7
+
+[node name="Swordsman" type="CharacterBody3D"]
+script = ExtResource("1_s")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_s1")
+
+[node name="Model" parent="." instance=ExtResource("2_model1")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="RightHandSocket" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="LeftHandSocket" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

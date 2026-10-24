@@ -1,0 +1,165 @@
+[gd_scene format=3 uid="uid://b516v1luyxpft"]
+
+[ext_resource type="Script" uid="uid://c6bv8rxcmf6l6" path="res://scripts/camera/rts_camera.gd" id="1_c"]
+[ext_resource type="Material" uid="uid://bj8nxw8hmk8t1" path="res://materials/ground_grass.tres" id="1_fu2j5"]
+[ext_resource type="Script" uid="uid://cq667dq7ee85y" path="res://scripts/systems/selection_system.gd" id="2_s"]
+[ext_resource type="Script" uid="uid://bj5u0i785o1k5" path="res://scripts/systems/command_manager.gd" id="3_m"]
+[ext_resource type="PackedScene" uid="uid://b8k1u2v3w4x5y" path="res://scenes/entities/villager.tscn" id="4_v"]
+[ext_resource type="PackedScene" uid="uid://d1k2u3v4w5x6b" path="res://scenes/entities/town_center.tscn" id="5_t"]
+[ext_resource type="PackedScene" uid="uid://c1k2u3v4w5x60" path="res://scenes/entities/resource_node.tscn" id="6_r"]
+[ext_resource type="Script" uid="uid://cn0opnyqi0hux" path="res://scripts/ui/health_bar.gd" id="7_5xrq8"]
+[ext_resource type="PackedScene" uid="uid://506u1kuxxofs" path="res://scenes/ui/hud.tscn" id="7_h"]
+[ext_resource type="Material" uid="uid://ci1r6th87s4es" path="res://materials/health_bar_bg.tres" id="7_ocd3q"]
+[ext_resource type="Material" uid="uid://b3do74yawrymx" path="res://materials/health_bar_fill.tres" id="8_5xrq8"]
+[ext_resource type="Script" path="res://scripts/systems/building_placer.gd" id="12_5xrq8"]
+[ext_resource type="PackedScene" uid="uid://f00d1b2u3s4h5" path="res://scenes/entities/berry_bush.tscn" id="13_berry"]
+[ext_resource type="PackedScene" uid="uid://g1o2l3d4n5o6d" path="res://scenes/entities/gold_node.tscn" id="14_gold"]
+[ext_resource type="PackedScene" uid="uid://b2k3m4n5p6q7r" path="res://scenes/entities/barracks.tscn" id="15_barracks"]
+[ext_resource type="PackedScene" uid="uid://s1w2o3r4d5s6m" path="res://scenes/entities/swordsman.tscn" id="16_swordsman"]
+[ext_resource type="PackedScene" uid="uid://c2d3e4f5g6h7a" path="res://scenes/entities/archer.tscn" id="17_archer"]
+[ext_resource type="PackedScene" uid="uid://dq7rc1yy4751b" path="res://scenes/entities/stone_node.tscn" id="18_stone"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_kbh5f"]
+sky_top_color = Color(0.5294118, 0.80784315, 0.92156863, 1)
+sky_horizon_color = Color(0.8784314, 0.9647059, 1, 1)
+ground_bottom_color = Color(0.2, 0.17, 0.13, 1)
+ground_horizon_color = Color(0.65, 0.67, 0.7, 1)
+
+[sub_resource type="Sky" id="Sky_83agg"]
+sky_material = SubResource("ProceduralSkyMaterial_kbh5f")
+
+[sub_resource type="Environment" id="Environment_ns4lk"]
+background_mode = 2
+sky = SubResource("Sky_83agg")
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.45, 0.5, 1)
+ambient_light_energy = 0.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(200, 1, 200)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(200, 200)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.25, 0.45, 0.2, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_n74up"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_lwqq7"]
+
+[node name="Main" type="Node3D" unique_id=490325983]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=587736379]
+environment = SubResource("Environment_ns4lk")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1312280376]
+transform = Transform3D(0.86602503, -0.4330126, 0.24999991, 0, 0.49999982, 0.8660252, -0.4999998, -0.74999976, 0.43301255, 20, 40, 20)
+light_energy = 0.8
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="." unique_id=789393329]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1610993975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=611428296]
+material_override = ExtResource("1_fu2j5")
+mesh = SubResource("PlaneMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="CameraController" type="Node3D" parent="." unique_id=1581721219]
+script = ExtResource("1_c")
+
+[node name="Camera3D" type="Camera3D" parent="CameraController" unique_id=1436676812]
+transform = Transform3D(1, 0, 0, 0, 0.573576, 0.819152, 0, -0.819152, 0.573576, 0, 20, 15)
+
+[node name="SelectionSystem" type="Node3D" parent="." unique_id=1462158178]
+script = ExtResource("2_s")
+
+[node name="CommandManager" type="Node" parent="." unique_id=90870238]
+script = ExtResource("3_m")
+
+[node name="TownCenter" parent="." unique_id=415919071 instance=ExtResource("5_t")]
+
+[node name="Villager1" parent="." unique_id=2092279276 instance=ExtResource("4_v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
+
+[node name="SelectionHighlight" type="OmniLight3D" parent="Villager1" unique_id=1408584117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+visible = false
+light_color = Color(0.2, 1, 0.2, 1)
+light_energy = 0.8
+omni_range = 2.5
+
+[node name="HealthBarPivot" type="Node3D" parent="Villager1" unique_id=251790589]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+script = ExtResource("7_5xrq8")
+
+[node name="HealthBarBG" type="MeshInstance3D" parent="Villager1/HealthBarPivot" unique_id=206827954]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0, 0, 0)
+material_override = ExtResource("7_ocd3q")
+mesh = SubResource("QuadMesh_n74up")
+
+[node name="HealthBarFill" type="MeshInstance3D" parent="Villager1/HealthBarPivot" unique_id=94320684]
+transform = Transform3D(0.95, 0, 0, 0, 0.08, 0, 0, 0, 1, 0, 0, 0.01)
+material_override = ExtResource("8_5xrq8")
+mesh = SubResource("QuadMesh_lwqq7")
+
+[node name="Villager2" parent="." unique_id=745332090 instance=ExtResource("4_v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 4)
+
+[node name="Villager3" parent="." unique_id=1626304575 instance=ExtResource("4_v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+
+[node name="Tree1" parent="." unique_id=1992190730 instance=ExtResource("6_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -10)
+
+[node name="Tree2" parent="." unique_id=336416810 instance=ExtResource("6_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -9)
+
+[node name="Tree3" parent="." unique_id=778520574 instance=ExtResource("6_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -12)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1712149542]
+
+[node name="HUD" parent="CanvasLayer" unique_id=1534425923 instance=ExtResource("7_h")]
+
+[node name="MinimapCamera" type="Camera3D" parent="." unique_id=1818400767]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 80, 0)
+projection = 1
+size = 120.0
+
+[node name="BuildingPlacer" type="Node3D" parent="." unique_id=1241929612]
+script = ExtResource("12_5xrq8")
+
+[node name="BerryBush1" parent="." instance=ExtResource("13_berry")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -6)
+
+[node name="BerryBush2" parent="." instance=ExtResource("13_berry")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -5)
+
+[node name="BerryBush3" parent="." instance=ExtResource("13_berry")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -8)
+
+[node name="GoldMine1" parent="." instance=ExtResource("14_gold")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 12)
+
+[node name="GoldMine2" parent="." instance=ExtResource("14_gold")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 7)
+
+[node name="StoneMine1" parent="." instance=ExtResource("18_stone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -3)
+
+[node name="StoneMine2" parent="." instance=ExtResource("18_stone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -1)
+
+[node name="Barracks" parent="." instance=ExtResource("15_barracks")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 8)
+
+[node name="MyArcher" parent="." instance=ExtResource("17_archer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 7)
+owner_peer_id = 1
+
+

@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://c7m8x9p1q2r3h"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_house"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h1"]
+size = Vector3(2.5, 2.0, 2.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(2.4, 1.4, 2.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_house_body"]
+albedo_color = Color(0.65, 0.45, 0.28, 1.0)
+roughness = 0.85
+
+[sub_resource type="PrismMesh" id="PrismMesh_roof"]
+size = Vector3(2.6, 1.0, 2.6)
+
+[sub_resource type="StandardMaterial3D" id="Mat_house_roof"]
+albedo_color = Color(0.75, 0.25, 0.15, 1.0)
+roughness = 0.7
+
+[node name="House" type="StaticBody3D"]
+script = ExtResource("1_house")
+building_type = 1
+max_hp = 400
+current_hp = 400
+pop_bonus = 5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("BoxShape3D_h1")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("Mat_house_body")
+
+[node name="RoofMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
+mesh = SubResource("PrismMesh_roof")
+surface_material_override/0 = SubResource("Mat_house_roof")

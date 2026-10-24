@@ -1,0 +1,48 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="AOE"
+run/main_scene="res://scenes/ui/lobby.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[autoload]
+
+_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
+SteamManager="*res://scripts/autoload/steam_manager.gd"
+NetworkManager="*res://scripts/autoload/network_manager.gd"
+GameManager="*res://scripts/autoload/game_manager.gd"
+SoundManager="*res://scripts/autoload/sound_manager.gd"
+
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg", "res://addons/godotsteam/plugin.cfg")
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
+
+[steam]
+
+initialization/app_data/app_id=480
+initialization/app_data/demo_id=480
+initialization/app_data/playtest_id=480
+initialization/app_data/tool_id=480
+initialization/processes/initialize_on_startup=true

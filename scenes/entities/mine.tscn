@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://m1n2e3c4a5m6p"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_mine"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_m1"]
+size = Vector3(3.0, 2.0, 3.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mine_shed"]
+size = Vector3(2.8, 1.8, 2.8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_mine_wood"]
+albedo_color = Color(0.4, 0.3, 0.2, 1.0)
+roughness = 0.95
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ore"]
+top_radius = 0.4
+bottom_radius = 0.6
+height = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_mine_gold"]
+albedo_color = Color(0.9, 0.75, 0.15, 1.0)
+metallic = 0.8
+roughness = 0.3
+
+[node name="MiningCamp" type="StaticBody3D"]
+script = ExtResource("1_mine")
+building_type = 3
+max_hp = 500
+current_hp = 500
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("BoxShape3D_m1")
+
+[node name="ShedMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_mine_shed")
+surface_material_override/0 = SubResource("Mat_mine_wood")
+
+[node name="OrePile" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0, 0.4, 1.0)
+mesh = SubResource("CylinderMesh_ore")
+surface_material_override/0 = SubResource("Mat_mine_gold")
