@@ -375,7 +375,12 @@ func play_anim(anim_name: String) -> void:
 					break
 		elif "idle" in lower:
 			for a in all_anims:
-				if "idle_foldarms" in a.to_lower() or "idle" in a.to_lower():
+				if "idle_loop" in a.to_lower() or "idle_foldarms" in a.to_lower() or "idle" in a.to_lower():
+					target_a = a
+					break
+		elif "aim" in lower or "bow" in lower or "shoot" in lower:
+			for a in all_anims:
+				if "pistol_aim_neutral" in a.to_lower() or "pistol_idle" in a.to_lower() or "aim" in a.to_lower():
 					target_a = a
 					break
 		elif "sword" in lower or "attack" in lower or "punch" in lower or "slash" in lower:
@@ -548,7 +553,10 @@ func _process_attack(_delta: float) -> void:
 		if global_position.distance_to(t_pos) > 0.1:
 			look_at(Vector3(t_pos.x, global_position.y, t_pos.z), Vector3.UP)
 
-	play_anim("Sword_Regular_Combo")
+	if unit_type == UnitType.ARCHER:
+		play_anim("Pistol_Aim_Neutral")
+	else:
+		play_anim("Sword_Regular_Combo")
 
 	if attack_timer <= 0.0:
 		attack_timer = attack_cooldown

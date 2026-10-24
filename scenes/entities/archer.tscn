@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c2d3e4f5g6h7a"]
 
 [ext_resource type="Script" uid="uid://cuu0lyxkfyp0e" path="res://scripts/entities/archer.gd" id="1_a"]
-[ext_resource type="PackedScene" uid="uid://cwuwp2t2r3gcf" path="res://assets/animations/UAL2_Standard.glb" id="2_model2"]
+[ext_resource type="PackedScene" path="res://assets/animations/UAL1_Standard.glb" id="2_model1"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_a1"]
 radius = 0.4
@@ -14,7 +14,7 @@ script = ExtResource("1_a")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("CapsuleShape3D_a1")
 
-[node name="Model" parent="." unique_id=184163389 instance=ExtResource("2_model2")]
+[node name="Model" parent="." unique_id=184163389 instance=ExtResource("2_model1")]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 
 [node name="LeftHandSocket" type="Marker3D" parent="." unique_id=520647364]

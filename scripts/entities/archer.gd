@@ -29,6 +29,7 @@ func _equip_bow() -> void:
 func _perform_attack(target: Node) -> void:
 	if not is_instance_valid(target):
 		return
+	play_anim("Pistol_Shoot")
 	var arrow_scene := load(ARROW_SCENE_PATH) as PackedScene
 	if not arrow_scene:
 		return
