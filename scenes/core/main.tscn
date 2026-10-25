@@ -11,12 +11,12 @@
 [ext_resource type="PackedScene" uid="uid://506u1kuxxofs" path="res://scenes/ui/hud.tscn" id="7_h"]
 [ext_resource type="Material" uid="uid://ci1r6th87s4es" path="res://materials/health_bar_bg.tres" id="7_ocd3q"]
 [ext_resource type="Material" uid="uid://b3do74yawrymx" path="res://materials/health_bar_fill.tres" id="8_5xrq8"]
-[ext_resource type="Script" path="res://scripts/systems/building_placer.gd" id="12_5xrq8"]
-[ext_resource type="PackedScene" uid="uid://f00d1b2u3s4h5" path="res://scenes/entities/berry_bush.tscn" id="13_berry"]
-[ext_resource type="PackedScene" uid="uid://g1o2l3d4n5o6d" path="res://scenes/entities/gold_node.tscn" id="14_gold"]
+[ext_resource type="Script" uid="uid://jh6nslommhwv" path="res://scripts/systems/building_placer.gd" id="12_5xrq8"]
+[ext_resource type="PackedScene" uid="uid://b5lif85mjl8qe" path="res://scenes/entities/berry_bush.tscn" id="13_berry"]
+[ext_resource type="PackedScene" uid="uid://c6a601gu3xtfl" path="res://scenes/entities/gold_node.tscn" id="14_gold"]
 [ext_resource type="PackedScene" uid="uid://b2k3m4n5p6q7r" path="res://scenes/entities/barracks.tscn" id="15_barracks"]
-[ext_resource type="PackedScene" uid="uid://s1w2o3r4d5s6m" path="res://scenes/entities/swordsman.tscn" id="16_swordsman"]
 [ext_resource type="PackedScene" uid="uid://c2d3e4f5g6h7a" path="res://scenes/entities/archer.tscn" id="17_archer"]
+[ext_resource type="PackedScene" uid="uid://c7m8yap1q2r3h" path="res://scenes/entities/house.tscn" id="18_m8j4h"]
 [ext_resource type="PackedScene" uid="uid://dq7rc1yy4751b" path="res://scenes/entities/stone_node.tscn" id="18_stone"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_kbh5f"]
@@ -32,17 +32,20 @@ sky_material = SubResource("ProceduralSkyMaterial_kbh5f")
 background_mode = 2
 sky = SubResource("Sky_83agg")
 ambient_light_source = 2
-ambient_light_color = Color(0.4, 0.45, 0.5, 1)
-ambient_light_energy = 0.5
+ambient_light_color = Color(0.3, 0.35, 0.4, 1)
+ambient_light_energy = 0.35
+reflected_light_source = 2
+tonemap_mode = 2
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.3
+glow_bloom = 0.15
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(200, 1, 200)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(200, 200)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
-albedo_color = Color(0.25, 0.45, 0.2, 1)
 
 [sub_resource type="QuadMesh" id="QuadMesh_n74up"]
 
@@ -55,8 +58,11 @@ environment = SubResource("Environment_ns4lk")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1312280376]
 transform = Transform3D(0.86602503, -0.4330126, 0.24999991, 0, 0.49999982, 0.8660252, -0.4999998, -0.74999976, 0.43301255, 20, 40, 20)
-light_energy = 0.8
+light_color = Color(1, 0.97, 0.92, 1)
+light_energy = 1.1
 shadow_enabled = true
+directional_shadow_split_1 = 0.15
+directional_shadow_blend_splits = true
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=789393329]
 
@@ -67,7 +73,6 @@ shape = SubResource("BoxShape3D_ground")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=611428296]
 material_override = ExtResource("1_fu2j5")
 mesh = SubResource("PlaneMesh_ground")
-surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
 [node name="CameraController" type="Node3D" parent="." unique_id=1581721219]
 script = ExtResource("1_c")
@@ -134,32 +139,32 @@ size = 120.0
 [node name="BuildingPlacer" type="Node3D" parent="." unique_id=1241929612]
 script = ExtResource("12_5xrq8")
 
-[node name="BerryBush1" parent="." instance=ExtResource("13_berry")]
+[node name="BerryBush1" parent="." unique_id=953236864 instance=ExtResource("13_berry")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -6)
 
-[node name="BerryBush2" parent="." instance=ExtResource("13_berry")]
+[node name="BerryBush2" parent="." unique_id=1212310374 instance=ExtResource("13_berry")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -5)
 
-[node name="BerryBush3" parent="." instance=ExtResource("13_berry")]
+[node name="BerryBush3" parent="." unique_id=1132172435 instance=ExtResource("13_berry")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -8)
 
-[node name="GoldMine1" parent="." instance=ExtResource("14_gold")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 12)
+[node name="GoldMine1" parent="." unique_id=1976035880 instance=ExtResource("14_gold")]
+transform = Transform3D(0.819152, 0, 0.573576, 0, 1, 0, -0.573576, 0, 0.819152, -12, 0, 12)
 
-[node name="GoldMine2" parent="." instance=ExtResource("14_gold")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 7)
+[node name="GoldMine2" parent="." unique_id=1710114094 instance=ExtResource("14_gold")]
+transform = Transform3D(0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, 0.939693, -16, 0, 7)
 
-[node name="StoneMine1" parent="." instance=ExtResource("18_stone")]
+[node name="StoneMine1" parent="." unique_id=1762557091 instance=ExtResource("18_stone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -3)
 
-[node name="StoneMine2" parent="." instance=ExtResource("18_stone")]
+[node name="StoneMine2" parent="." unique_id=1862470726 instance=ExtResource("18_stone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -1)
 
-[node name="Barracks" parent="." instance=ExtResource("15_barracks")]
+[node name="Barracks" parent="." unique_id=1943015768 instance=ExtResource("15_barracks")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 8)
 
-[node name="MyArcher" parent="." instance=ExtResource("17_archer")]
+[node name="MyArcher" parent="." unique_id=896877536 instance=ExtResource("17_archer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 7)
-owner_peer_id = 1
 
-
+[node name="House" parent="." unique_id=105371147 instance=ExtResource("18_m8j4h")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02602005, 0.022000007, -12.32266)

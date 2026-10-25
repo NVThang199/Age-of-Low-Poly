@@ -49,7 +49,15 @@ var building_hp_bar_fill: MeshInstance3D = null
 func _create_building_hp_bar() -> void:
 	building_hp_bar_pivot = Node3D.new()
 	building_hp_bar_pivot.name = "BuildingHPBar"
-	building_hp_bar_pivot.position = Vector3(0.0, 4.0, 0.0)
+	var hp_height := 3.2
+	match building_type:
+		BuildingType.TOWN_CENTER:
+			hp_height = 3.2
+		BuildingType.BARRACKS:
+			hp_height = 2.8
+		BuildingType.HOUSE:
+			hp_height = 2.4
+	building_hp_bar_pivot.position = Vector3(0.0, hp_height, 0.0)
 
 	var bg := MeshInstance3D.new()
 	var bg_mesh := QuadMesh.new()
@@ -83,17 +91,20 @@ func _update_building_hp_bar() -> void:
 		building_hp_bar_pivot.visible = is_selected or (current_hp < max_hp)
 
 func _apply_scaffold_visuals() -> void:
-	# Làm mờ tòa nhà khi đang là móng xây dựng và co nhỏ nhẹ
-	for child in get_children():
-		if child is MeshInstance3D and child != selection_box_mesh:
+	var model = get_node_or_null("Model")
+	if model:
+		model.scale = Vector3(0.95, 0.4, 0.95)
+	for child in find_children("", "MeshInstance3D"):
+		if child != selection_box_mesh and (not building_hp_bar_pivot or child.get_parent() != building_hp_bar_pivot):
 			child.transparency = 0.5
-			child.scale = Vector3(0.95, 0.4, 0.95)
 
 func _restore_completed_visuals() -> void:
-	for child in get_children():
-		if child is MeshInstance3D and child != selection_box_mesh:
+	var model = get_node_or_null("Model")
+	if model:
+		model.scale = Vector3.ONE
+	for child in find_children("", "MeshInstance3D"):
+		if child != selection_box_mesh and (not building_hp_bar_pivot or child.get_parent() != building_hp_bar_pivot):
 			child.transparency = 0.0
-			child.scale = Vector3.ONE
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected
@@ -136,7 +147,13 @@ func _show_build_pulse() -> void:
 func _create_selection_box() -> void:
 	selection_box_mesh = MeshInstance3D.new()
 	var box := BoxMesh.new()
-	box.size = Vector3(4.2, 0.1, 4.2)
+	match building_type:
+		BuildingType.HOUSE:
+			box.size = Vector3(3.2, 0.1, 3.2)
+		BuildingType.TOWN_CENTER, BuildingType.BARRACKS:
+			box.size = Vector3(4.2, 0.1, 4.2)
+		_:
+			box.size = Vector3(3.5, 0.1, 3.5)
 	selection_box_mesh.mesh = box
 	selection_box_mesh.position.y = 0.05
 	var mat := StandardMaterial3D.new()

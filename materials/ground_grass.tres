@@ -1,5 +1,7 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://bj8nxw8hmk8t1"]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bj8nxw8hmk8t1"]
+
+[ext_resource type="Shader" path="res://shaders/ground_grass.gdshader" id="1_shader"]
 
 [resource]
-albedo_color = Color(0.2, 0.5, 0.15, 1)
-roughness = 0.9
+render_priority = 0
+shader = ExtResource("1_shader")
