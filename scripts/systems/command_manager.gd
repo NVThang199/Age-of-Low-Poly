@@ -169,7 +169,16 @@ func _execute_command(action_type: String, payload: Dictionary, sender_peer: int
 
 	match action_type:
 		"move":
-			_execute_move(units, target_pos)
+			if is_instance_valid(target_node) and target_node is BaseBuilding:
+				var b_pos: Vector3 = (target_node as BaseBuilding).global_position
+				var is_storage: bool = target_node.building_type == BaseBuilding.BuildingType.STORAGE_PIT or target_node.building_type == BaseBuilding.BuildingType.GRANARY
+				var radius := 3.4 if is_storage else 4.2
+				var to_pos := target_pos - b_pos
+				to_pos.y = 0.0
+				var dir := to_pos.normalized() if to_pos.length_squared() > 0.05 else Vector3.FORWARD
+				_execute_move(units, b_pos + dir * radius)
+			else:
+				_execute_move(units, target_pos)
 		"gather":
 			if is_instance_valid(target_node):
 				_execute_gather(units, target_node)

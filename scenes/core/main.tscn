@@ -38,7 +38,6 @@ reflected_light_source = 2
 tonemap_mode = 2
 glow_enabled = true
 glow_normalized = true
-glow_intensity = 0.3
 glow_bloom = 0.15
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
@@ -71,6 +70,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 shape = SubResource("BoxShape3D_ground")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=611428296]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9073486e-05, -0.06623554, 0.011856079)
 material_override = ExtResource("1_fu2j5")
 mesh = SubResource("PlaneMesh_ground")
 

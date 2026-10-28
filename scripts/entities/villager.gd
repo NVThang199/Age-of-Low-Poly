@@ -74,16 +74,10 @@ func _process_building(delta: float) -> void:
 		return
 
 	var dist := global_position.distance_to(target_building.global_position)
-	var build_dist: float = 4.2
-	var can_build := (dist <= build_dist) or (dist <= build_dist + 1.5 and stuck_timer > 0.08)
+	var build_dist: float = 4.6
+	var can_build := dist <= build_dist
 	if not can_build:
-		var base_dir := global_position - target_building.global_position
-		base_dir.y = 0.0
-		var angle: float = atan2(base_dir.x, base_dir.z) if base_dir.length_squared() > 0.05 else float(get_instance_id() % 8) * (PI / 4.0)
-		var slot_offset := float(get_instance_id() % 6) * (PI / 3.0) * 0.35
-		angle += slot_offset
-		var dir := Vector3(sin(angle), 0.0, cos(angle)).normalized()
-		target_position = target_building.global_position + dir * 2.8
+		target_position = _find_best_perimeter_slot(target_building.global_position, 3.4)
 		_process_movement(delta)
 		return
 
@@ -93,7 +87,8 @@ func _process_building(delta: float) -> void:
 	var diff := b_pos - global_position
 	diff.y = 0.0
 	if diff.length_squared() > 0.05:
-		look_at(Vector3(b_pos.x, global_position.y, b_pos.z), Vector3.UP)
+		var target_rot_y := atan2(-diff.x, -diff.z)
+		rotation.y = lerp_angle(rotation.y, target_rot_y, 14.0 * delta)
 
 	play_anim("Sword_Regular_Combo")
 	target_building.construct(delta, 1.0)
@@ -106,6 +101,9 @@ func move_to(target_pos: Vector3) -> void:
 func gather_from(source: ResourceSource) -> void:
 	target_resource = source
 	target_entity = source
+	if source:
+		carried_type = source.resource_type
+		carried_is_meat = source.is_meat if "is_meat" in source else false
 	is_delivering = false
 	state = UnitState.GATHERING
 	_update_tool()
@@ -126,12 +124,19 @@ func return_resources_to(dropoff: Node3D) -> void:
 	else:
 		is_delivering = false
 		state = UnitState.MOVING
-		target_position = dropoff.global_position
+		var is_storage: bool = "building_type" in dropoff and (dropoff.building_type == BaseBuilding.BuildingType.STORAGE_PIT or dropoff.building_type == BaseBuilding.BuildingType.GRANARY)
+		var target_radius := 3.4 if is_storage else 4.0
+		var to_me := global_position - dropoff.global_position
+		to_me.y = 0.0
+		var approach_dir := to_me.normalized() if to_me.length_squared() > 0.05 else Vector3.FORWARD
+		target_position = dropoff.global_position + approach_dir * target_radius
 	_update_tool()
 
 func _process_gathering(delta: float) -> void:
 	if is_delivering or carried_amount >= carry_capacity:
 		is_delivering = true
+		if not is_instance_valid(target_dropoff) or (target_dropoff.has_method("accepts_resource") and not target_dropoff.accepts_resource(carried_type, carried_is_meat)):
+			target_dropoff = _find_nearest_dropoff()
 		_return_to_dropoff(delta)
 		return
 
@@ -144,21 +149,12 @@ func _process_gathering(delta: float) -> void:
 
 	var dist := global_position.distance_to(target_resource.global_position)
 	var is_stone_or_gold: bool = (target_resource.resource_type == ResourceSource.ResourceType.STONE or target_resource.resource_type == ResourceSource.ResourceType.GOLD)
-	var gather_dist: float = 3.8 if is_stone_or_gold else 3.2
+	var gather_dist: float = 2.6 if is_stone_or_gold else 2.0
 
-	# Nếu đã đủ gần hoặc bị chặn bởi dân làng khác/vật cản khi ở cự ly làm việc
-	var can_gather := (dist <= gather_dist) or (dist <= gather_dist + 1.2 and stuck_timer > 0.08)
+	var can_gather := dist <= gather_dist
 	if not can_gather:
-		# Tiếp cận theo góc vị trí riêng (dựa trên instance_id) để chia đều quanh chu vi tài nguyên, không chụm lại
-		var base_dir := (global_position - target_resource.global_position)
-		base_dir.y = 0.0
-		var angle: float = atan2(base_dir.x, base_dir.z) if base_dir.length_squared() > 0.05 else float(get_instance_id() % 8) * (PI / 4.0)
-		# Lệch góc theo ID để mỗi dân làng chiếm 1 khe đứng riêng biệt (slot)
-		var slot_offset := float(get_instance_id() % 6) * (PI / 3.0) * 0.35
-		angle += slot_offset
-		var dir := Vector3(sin(angle), 0.0, cos(angle)).normalized()
 		var perimeter_offset := 2.2 if is_stone_or_gold else 1.6
-		target_position = target_resource.global_position + dir * perimeter_offset
+		target_position = _find_best_perimeter_slot(target_resource.global_position, perimeter_offset)
 		_process_movement(delta)
 		return
 
@@ -168,7 +164,8 @@ func _process_gathering(delta: float) -> void:
 	var diff := res_pos - global_position
 	diff.y = 0.0
 	if diff.length_squared() > 0.05:
-		look_at(Vector3(res_pos.x, global_position.y, res_pos.z), Vector3.UP)
+		var target_rot_y := atan2(-diff.x, -diff.z)
+		rotation.y = lerp_angle(rotation.y, target_rot_y, 14.0 * delta)
 
 	match target_resource.resource_type:
 		ResourceSource.ResourceType.WOOD:
@@ -189,7 +186,7 @@ func _process_gathering(delta: float) -> void:
 		carried_amount += harvested
 
 func _return_to_dropoff(delta: float) -> void:
-	if not is_instance_valid(target_dropoff):
+	if not is_instance_valid(target_dropoff) or (target_dropoff.has_method("accepts_resource") and not target_dropoff.accepts_resource(carried_type, carried_is_meat)):
 		target_dropoff = _find_nearest_dropoff()
 
 	if not is_instance_valid(target_dropoff):
@@ -198,21 +195,14 @@ func _return_to_dropoff(delta: float) -> void:
 		return
 
 	var dist := global_position.distance_to(target_dropoff.global_position)
-	var stop_dist := 4.2
-	if "building_type" in target_dropoff and (target_dropoff.building_type == BaseBuilding.BuildingType.STORAGE_PIT or target_dropoff.building_type == BaseBuilding.BuildingType.GRANARY):
-		stop_dist = 3.2
+	var is_storage: bool = "building_type" in target_dropoff and (target_dropoff.building_type == BaseBuilding.BuildingType.STORAGE_PIT or target_dropoff.building_type == BaseBuilding.BuildingType.GRANARY)
+	var stop_dist := 4.2 if is_storage else 5.0
 
 	# Tiến lại gần dropoff nếu chưa trong phạm vi hoặc bị chặn lại bởi dân khác khi tới sát trạm
-	var can_deposit := (dist <= stop_dist) or (dist <= stop_dist + 1.5 and stuck_timer > 0.08)
+	var can_deposit := (dist <= stop_dist) or (dist <= stop_dist + 1.2 and stuck_timer > 0.08)
 	if not can_deposit:
-		var base_dir := global_position - target_dropoff.global_position
-		base_dir.y = 0.0
-		var angle: float = atan2(base_dir.x, base_dir.z) if base_dir.length_squared() > 0.05 else float(get_instance_id() % 8) * (PI / 4.0)
-		var slot_offset := float(get_instance_id() % 8) * (PI / 4.0) * 0.25
-		angle += slot_offset
-		var approach_dir := Vector3(sin(angle), 0.0, cos(angle)).normalized()
-		var target_radius := 2.2 if ("building_type" in target_dropoff and (target_dropoff.building_type == BaseBuilding.BuildingType.STORAGE_PIT or target_dropoff.building_type == BaseBuilding.BuildingType.GRANARY)) else 3.0
-		target_position = target_dropoff.global_position + approach_dir * target_radius
+		var target_radius := 3.2 if is_storage else 3.8
+		target_position = _find_best_perimeter_slot(target_dropoff.global_position, target_radius)
 		_process_movement(delta)
 		play_anim("Walk_Carry")
 		return
@@ -224,6 +214,7 @@ func _return_to_dropoff(delta: float) -> void:
 		carried_amount = 0
 		carried_is_meat = false
 	is_delivering = false
+	target_dropoff = null
 	_update_tool()
 
 	if is_instance_valid(target_resource) and target_resource.current_amount > 0:
@@ -234,6 +225,63 @@ func _return_to_dropoff(delta: float) -> void:
 			state = UnitState.GATHERING
 		else:
 			state = UnitState.IDLE
+
+func _find_best_perimeter_slot(center: Vector3, radius: float) -> Vector3:
+	var units := get_tree().get_nodes_in_group("units")
+	var other_units: Array[BaseUnit] = []
+	var occupied_angles: Array[float] = []
+
+	for u in units:
+		if u != self and u is BaseUnit and is_instance_valid(u):
+			var bu := u as BaseUnit
+			other_units.append(bu)
+			var u_pos := bu.global_position
+			var d_center := Vector3(u_pos.x - center.x, 0.0, u_pos.z - center.z)
+			var dist_center := d_center.length()
+			if dist_center > 0.05 and dist_center <= radius + 2.5:
+				occupied_angles.append(atan2(d_center.x, d_center.z))
+			# Đặt trước góc nếu đồng đội đang di chuyển tới mục tiêu này
+			if bu.state == UnitState.MOVING or bu.state == UnitState.GATHERING:
+				var u_tar := bu.target_position
+				var d_tar := Vector3(u_tar.x - center.x, 0.0, u_tar.z - center.z)
+				var dist_tar := d_tar.length()
+				if dist_tar > 0.05 and dist_tar <= radius + 1.5:
+					occupied_angles.append(atan2(d_tar.x, d_tar.z))
+
+	var best_pos := center + Vector3.FORWARD * radius
+	var best_score := -INF
+	var my_pos := global_position
+
+	# Khảo sát 12 vị trí quanh chu vi mục tiêu (tài nguyên / móng nhà / kho)
+	for i in range(12):
+		var angle := float(i) * (TAU / 12.0)
+		var candidate_pos := center + Vector3(sin(angle), 0.0, cos(angle)) * radius
+
+		# 1. Kiểm tra góc mở quanh tâm (Sector Occupancy)
+		var min_angle_diff := PI
+		for occ in occupied_angles:
+			var diff := absf(wrapf(angle - occ, -PI, PI))
+			if diff < min_angle_diff:
+				min_angle_diff = diff
+
+		# 2. Kiểm tra khoảng cách vật lý tới các đơn vị khác
+		var min_unit_dist := 999.0
+		for u in other_units:
+			var d := candidate_pos.distance_to(u.global_position)
+			if d < min_unit_dist:
+				min_unit_dist = d
+
+		# Khe trống khi góc mở >= 28 độ (0.48 rad) VÀ khoảng cách vật lý >= 1.1m
+		var is_vacant := min_angle_diff >= 0.48 and min_unit_dist >= 1.1
+		var dist_to_me := my_pos.distance_to(candidate_pos)
+
+		# Ưu tiên tuyệt đối khe trống gần nhất; nếu kín hết thì chọn khe thoáng nhất
+		var score := (1000.0 - dist_to_me) if is_vacant else (min_angle_diff * 50.0 + min_unit_dist * 5.0 - dist_to_me)
+		if score > best_score:
+			best_score = score
+			best_pos = candidate_pos
+
+	return best_pos
 
 func _find_nearest_resource_of_type(type: ResourceSource.ResourceType) -> ResourceSource:
 	var resources := get_tree().get_nodes_in_group("resources")

@@ -61,6 +61,9 @@ var target_entity: Node = null
 var attack_timer: float = 0.0
 var stuck_timer: float = 0.0
 var last_collision_normal: Vector3 = Vector3.ZERO
+var avoidance_side: float = 0.0
+var avoidance_timer: float = 0.0
+var unmoving_timer: float = 0.0
 
 var is_selected: bool = false
 @onready var selection_ring: MeshInstance3D = null
@@ -354,20 +357,40 @@ func sync_unit_state(pos: Vector3, rot_y: float, anim: String) -> void:
 	if anim != "":
 		play_anim(anim)
 
+static var _ual1_lib: AnimationLibrary = null
+
+static func _get_ual1_lib() -> AnimationLibrary:
+	if _ual1_lib == null:
+		var s1: PackedScene = load("res://assets/animations/UAL1_Standard.glb")
+		if s1:
+			var n1 = s1.instantiate()
+			var ap1: AnimationPlayer = n1.find_child("AnimationPlayer", true, false)
+			if ap1 and ap1.has_animation_library(""):
+				_ual1_lib = ap1.get_animation_library("").duplicate(true)
+			n1.free()
+	return _ual1_lib
+
 func _init_animations() -> void:
 	anim_player = find_child("AnimationPlayer", true, false)
 	if anim_player:
+		var ual1 := _get_ual1_lib()
+		if ual1 and anim_player.has_animation_library(""):
+			var default_lib := anim_player.get_animation_library("")
+			for a_name in ual1.get_animation_list():
+				if not default_lib.has_animation(a_name):
+					default_lib.add_animation(a_name, ual1.get_animation(a_name))
+
 		for anim_name in anim_player.get_animation_list():
 			var anim := anim_player.get_animation(anim_name)
 			if anim:
 				var n := anim_name.to_lower()
-				if "loop" in n or "chop" in n or "walk" in n or "idle" in n or "carry" in n or "mine" in n or "farm" in n or "harvest" in n or "plant" in n:
+				if "loop" in n or "chop" in n or "walk" in n or "idle" in n or "carry" in n or "mine" in n or "farm" in n or "harvest" in n or "plant" in n or "sprint" in n or "run" in n or "jog" in n:
 					anim.loop_mode = Animation.LOOP_LINEAR
 		var all_anims := anim_player.get_animation_list()
 		if not all_anims.is_empty():
-			for candidate in ["Idle_FoldArms", "Idle_Loop", "Idle"]:
+			for candidate in ["Idle", "Idle_FoldArms", "Idle_Loop"]:
 				for a in all_anims:
-					if candidate.to_lower() in a.to_lower():
+					if a == candidate or a.ends_with("/" + candidate) or a.to_lower() == candidate.to_lower():
 						anim_player.play(a)
 						return
 			anim_player.play(all_anims[0])
@@ -403,15 +426,18 @@ func play_anim(anim_name: String) -> void:
 				if "walk_carry" in a.to_lower():
 					target_a = a
 					break
-		elif "walk" in lower or "run" in lower or "jog" in lower:
+		elif "sprint" in lower or "walk" in lower or "run" in lower or "jog" in lower:
 			for a in all_anims:
-				if "walk" in a.to_lower() or "jog" in a.to_lower():
+				if "sprint" in a.to_lower() or "walk" in a.to_lower() or "jog" in a.to_lower():
 					target_a = a
 					break
 		elif "idle" in lower:
-			for a in all_anims:
-				if "idle_loop" in a.to_lower() or "idle_foldarms" in a.to_lower() or "idle" in a.to_lower():
-					target_a = a
+			for candidate in ["Idle", "Idle_FoldArms", "Idle_Loop"]:
+				for a in all_anims:
+					if a == candidate or a.ends_with("/" + candidate) or a.to_lower() == candidate.to_lower():
+						target_a = a
+						break
+				if not target_a.is_empty():
 					break
 		elif "aim" in lower or "bow" in lower or "shoot" in lower:
 			for a in all_anims:
@@ -442,14 +468,14 @@ func _physics_process(delta: float) -> void:
 		if cam:
 			hp_bar_pivot.look_at(cam.global_position, Vector3.UP)
 
-	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
+	if multiplayer and multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		return
 
 	attack_timer = maxf(0.0, attack_timer - delta)
 
 	match state:
 		UnitState.IDLE:
-			play_anim("Idle_Loop")
+			play_anim("Idle")
 			_scan_for_enemies()
 		UnitState.MOVING:
 			_process_movement(delta)
@@ -458,7 +484,7 @@ func _physics_process(delta: float) -> void:
 		UnitState.BUILDING:
 			pass
 
-	if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and is_multiplayer_authority():
+	if multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and is_multiplayer_authority():
 		_net_sync_timer += delta
 		if _net_sync_timer >= NET_SYNC_INTERVAL:
 			_net_sync_timer = 0.0
@@ -501,21 +527,98 @@ func _scan_for_enemies() -> void:
 		attack_target(nearest_enemy)
 
 func _process_movement(delta: float) -> void:
-	play_anim("Walk_Carry" if unit_type == UnitType.VILLAGER else "Walk_Loop")
+	if unit_type == UnitType.VILLAGER:
+		var is_carrying: bool = ("carried_amount" in self and self.carried_amount > 0) or ("is_delivering" in self and self.is_delivering)
+		play_anim("Walk_Carry" if is_carrying else "Sprint")
+	else:
+		play_anim("Walk_Loop")
+
 	var diff := target_position - global_position
 	diff.y = 0.0
-	if diff.length() < 0.25:
+	var dist := diff.length()
+	var stop_threshold: float = maxf(0.35, move_speed * delta * 1.5)
+	if dist <= stop_threshold:
+		global_position = Vector3(target_position.x, global_position.y, target_position.z)
 		if state == UnitState.MOVING:
 			state = UnitState.IDLE
 		velocity = Vector3.ZERO
 		stuck_timer = 0.0
+		unmoving_timer = 0.0
+		avoidance_timer = 0.0
+		avoidance_side = 0.0
 		last_collision_normal = Vector3.ZERO
+		play_anim("Idle")
 		return
 
-	var dir := diff.normalized()
-	var move_vec := dir
+	var target_dir := diff.normalized()
 
-	# Lực tách cụm (Separation boid): tránh các đồng minh chen lấn, đâm đè lên nhau
+	# 1. Phát hiện chướng ngại vật cản đường thẳng (Look-ahead test_move)
+	# Né vật thể tĩnh (nhà, cây, đá, tường) và né NPC đang đứng yên/thao tác cản đường
+	var col := KinematicCollision3D.new()
+	var lookahead_dist: float = maxf(0.85, move_speed * delta * 4.0)
+	var is_blocked := test_move(global_transform, target_dir * lookahead_dist, col)
+	var obstacle_normal := Vector3.ZERO
+
+	if is_blocked and col:
+		var collider = col.get_collider()
+		var is_unit = collider is BaseUnit or (collider and collider.is_in_group("units"))
+		if not is_unit:
+			var n := col.get_normal()
+			if absf(n.y) < 0.7:
+				obstacle_normal = Vector3(n.x, 0.0, n.z).normalized()
+		else:
+			var other: BaseUnit = collider as BaseUnit
+			# Nếu NPC phía trước đang đứng yên/thao tác (khai thác, xây dựng, idle, đánh nhau)
+			# hoặc di chuyển rất chậm, coi đó là vật cản cần chủ động đánh lái vòng qua
+			var is_stationary := not is_instance_valid(other) or other.velocity.length_squared() < 0.2 or other.state != UnitState.MOVING
+			if is_stationary:
+				var away := (global_position - other.global_position)
+				away.y = 0.0
+				if away.length_squared() > 0.001:
+					obstacle_normal = away.normalized()
+				else:
+					var n := col.get_normal()
+					obstacle_normal = Vector3(n.x, 0.0, n.z).normalized()
+			else:
+				is_blocked = false # Đồng đội đang cùng di chuyển xử lý qua separation boid
+
+	var move_vec := target_dir
+
+	# 2. Chủ động điều hướng né vật thể tĩnh (Obstacle Avoidance / Tangent Wall-Following)
+	if is_blocked and obstacle_normal != Vector3.ZERO:
+		last_collision_normal = obstacle_normal
+		var t1 := Vector3(-obstacle_normal.z, 0.0, obstacle_normal.x) # Tiếp tuyến rẽ phải
+		var t2 := Vector3(obstacle_normal.z, 0.0, -obstacle_normal.x) # Tiếp tuyến rẽ trái
+
+		if avoidance_side == 0.0:
+			var cross_y := target_dir.cross(obstacle_normal).y
+			if absf(cross_y) > 0.01:
+				avoidance_side = 1.0 if cross_y > 0.0 else -1.0
+			else:
+				var dot1 := t1.dot(target_dir)
+				var dot2 := t2.dot(target_dir)
+				if absf(dot1 - dot2) > 0.05:
+					avoidance_side = 1.0 if dot1 > dot2 else -1.0
+				else:
+					avoidance_side = 1.0 if (get_instance_id() % 2 == 0) else -1.0
+
+		var chosen_tangent := t1 if avoidance_side > 0.0 else t2
+
+		# Triệt tiêu thành phần của target_dir đâm thẳng vào tường để lướt mượt mà không bị cản ma sát
+		var forward_along_wall := target_dir
+		var into_wall := forward_along_wall.dot(obstacle_normal)
+		if into_wall < 0.0:
+			forward_along_wall -= obstacle_normal * into_wall
+
+		move_vec = (chosen_tangent * 0.85 + forward_along_wall * 0.4).normalized()
+		avoidance_timer += delta
+	else:
+		# Đường thẳng tới đích thông thoáng
+		avoidance_side = 0.0
+		avoidance_timer = maxf(0.0, avoidance_timer - delta * 2.0)
+		last_collision_normal = Vector3.ZERO
+
+	# 3. Lực tách cụm (Separation boid): tránh đồng minh chen lấn, dẫm đè lên nhau
 	var sep := Vector3.ZERO
 	var units := get_tree().get_nodes_in_group("units")
 	for u in units:
@@ -528,43 +631,82 @@ func _process_movement(delta: float) -> void:
 				sep += (to_me / d) * ((1.5 - d) / 1.5)
 
 	if sep.length_squared() > 0.01:
-		move_vec = (move_vec + sep.normalized() * 0.85).normalized()
-
-	# Trượt mượt xung quanh vật cản (đá, tường, công trình) khi có va chạm
-	if stuck_timer > 0.05 and last_collision_normal.length_squared() > 0.5:
-		var slide_vec := dir.slide(last_collision_normal)
-		slide_vec.y = 0.0
-		if slide_vec.length_squared() > 0.05:
-			move_vec = slide_vec.normalized()
+		var sep_dir := sep.normalized()
+		var opposing := sep_dir.dot(move_vec)
+		if opposing < -0.05:
+			# Khi bị chặn đối đầu trực diện hoặc kẹp giữa các đồng đội:
+			# Tạo lực né sườn (lateral dodge) vuông góc với hướng di chuyển để lách sang mép
+			var lateral := Vector3(-move_vec.z, 0.0, move_vec.x)
+			var cross_y := sep_dir.cross(move_vec).y
+			var lat_sign := 1.0 if cross_y > 0.0 else -1.0
+			if absf(cross_y) < 0.05:
+				lat_sign = 1.0 if (get_instance_id() % 2 == 0) else -1.0
+			sep_dir = (lateral * lat_sign * 0.9 + (sep_dir - move_vec * opposing) * 0.3).normalized()
+			move_vec = (move_vec * 0.35 + sep_dir * 0.85).normalized()
 		else:
-			var tangent1 := Vector3(-last_collision_normal.z, 0.0, last_collision_normal.x).normalized()
-			var tangent2 := -tangent1
-			move_vec = tangent1 if dir.dot(tangent1) >= dir.dot(tangent2) else tangent2
+			move_vec = (move_vec + sep_dir * 0.4).normalized()
 
 	velocity = move_vec * move_speed
 	if move_vec.length_squared() > 0.05:
-		look_at(Vector3(global_position.x + move_vec.x, global_position.y, global_position.z + move_vec.z), Vector3.UP)
+		var target_rot_y := atan2(-move_vec.x, -move_vec.z)
+		rotation.y = lerp_angle(rotation.y, target_rot_y, 14.0 * delta)
 
 	var prev_pos := global_position
 	move_and_slide()
 
-	if get_slide_collision_count() > 0:
-		var col := get_slide_collision(0)
-		last_collision_normal = col.get_normal()
-		var actual_dist := (global_position - prev_pos).length()
-		if actual_dist < (move_speed * delta * 0.2):
-			stuck_timer += delta
-			if stuck_timer > 3.0:
-				if state == UnitState.MOVING:
-					state = UnitState.IDLE
-				velocity = Vector3.ZERO
-				stuck_timer = 0.0
-				last_collision_normal = Vector3.ZERO
-		else:
-			stuck_timer = maxf(0.0, stuck_timer - delta * 2.0)
+	# 4. Cập nhật va chạm thực tế từ slide collision
+	var hit_obstacle := false
+	for i in range(get_slide_collision_count()):
+		var col_slide := get_slide_collision(i)
+		var c = col_slide.get_collider()
+		if c:
+			var is_c_unit: bool = (c is BaseUnit) or (c.has_method("is_in_group") and c.is_in_group("units"))
+			if not is_c_unit:
+				var n := col_slide.get_normal()
+				if absf(n.y) < 0.7:
+					last_collision_normal = Vector3(n.x, 0.0, n.z).normalized()
+					hit_obstacle = true
+					break
+			else:
+				var other_unit: BaseUnit = c as BaseUnit
+				if is_instance_valid(other_unit) and (other_unit.velocity.length_squared() < 0.2 or other_unit.state != UnitState.MOVING):
+					var away := (global_position - other_unit.global_position)
+					away.y = 0.0
+					if away.length_squared() > 0.001:
+						last_collision_normal = away.normalized()
+						hit_obstacle = true
+						break
+
+	# 5. Phát hiện kẹt (CHỈ dừng về IDLE khi thật sự không thể di chuyển hoặc đích bị vây kín hoàn toàn)
+	var physical_disp := (global_position - prev_pos).length()
+	if (hit_obstacle or is_blocked) and physical_disp < (move_speed * delta * 0.25):
+		stuck_timer += delta
+		unmoving_timer += delta
+		if unmoving_timer > 1.2: # Bị kẹt cứng trong góc chết 1.2s không nhích được
+			if state == UnitState.MOVING:
+				state = UnitState.IDLE
+			velocity = Vector3.ZERO
+			stuck_timer = 0.0
+			unmoving_timer = 0.0
+			avoidance_timer = 0.0
+			avoidance_side = 0.0
+			last_collision_normal = Vector3.ZERO
+			play_anim("Idle")
 	else:
-		stuck_timer = maxf(0.0, stuck_timer - delta * 3.0)
+		stuck_timer = maxf(0.0, stuck_timer - delta * 2.0)
+		unmoving_timer = maxf(0.0, unmoving_timer - delta * 2.0)
+
+	# Nếu đã đi vòng né vật thể quá lâu (4.5 giây) mà đích vẫn bị vây kín không có đường vào
+	if avoidance_timer > 4.5:
+		if state == UnitState.MOVING:
+			state = UnitState.IDLE
+		velocity = Vector3.ZERO
+		stuck_timer = 0.0
+		unmoving_timer = 0.0
+		avoidance_timer = 0.0
+		avoidance_side = 0.0
 		last_collision_normal = Vector3.ZERO
+		play_anim("Idle")
 
 func _process_attack(_delta: float) -> void:
 	if not is_instance_valid(target_entity):
@@ -578,7 +720,14 @@ func _process_attack(_delta: float) -> void:
 		effective_range = maxf(attack_range, 3.8) # Bán kính chạm biên công trình
 
 	if dist > effective_range:
-		target_position = target_entity.global_position
+		if target_entity is BaseBuilding:
+			var b_pos: Vector3 = (target_entity as Node3D).global_position
+			var to_me: Vector3 = global_position - b_pos
+			to_me.y = 0.0
+			var approach_dir: Vector3 = to_me.normalized() if to_me.length_squared() > 0.05 else Vector3.FORWARD
+			target_position = b_pos + approach_dir * (effective_range - 0.5)
+		else:
+			target_position = target_entity.global_position
 		_process_movement(_delta)
 		return
 
@@ -638,6 +787,11 @@ func move_to(target_pos: Vector3) -> void:
 	target_position = target_pos
 	target_entity = null
 	state = UnitState.MOVING
+	stuck_timer = 0.0
+	unmoving_timer = 0.0
+	avoidance_timer = 0.0
+	avoidance_side = 0.0
+	last_collision_normal = Vector3.ZERO
 
 func attack_target(target: Node) -> void:
 	target_entity = target
