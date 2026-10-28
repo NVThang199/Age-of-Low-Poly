@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://s1t2o3r4a5g6e"]
+[gd_scene format=3 uid="uid://dk7lcu331cx5c"]
 
 [ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_storage_pit"]
 [ext_resource type="PackedScene" path="res://assets/models/storage_pit.glb" id="2_model"]
