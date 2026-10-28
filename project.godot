@@ -21,6 +21,7 @@ SteamManager="*res://scripts/autoload/steam_manager.gd"
 NetworkManager="*res://scripts/autoload/network_manager.gd"
 GameManager="*res://scripts/autoload/game_manager.gd"
 SoundManager="*res://scripts/autoload/sound_manager.gd"
+TechManager="*res://scripts/autoload/tech_manager.gd"
 
 [display]
 

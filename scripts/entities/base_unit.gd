@@ -431,11 +431,12 @@ func _physics_process(delta: float) -> void:
 			if anim_player and is_instance_valid(anim_player) and anim_player.is_playing():
 				current_anim = anim_player.current_animation
 			var my_id := multiplayer.get_unique_id()
-			if is_instance_valid(NetworkManager) and "connected_peers" in NetworkManager:
-				for target_id: int in NetworkManager.connected_peers:
+			var net_mgr = get_node_or_null("/root/NetworkManager")
+			if net_mgr and "connected_peers" in net_mgr:
+				for target_id: int in net_mgr.connected_peers:
 					if target_id != my_id:
 						sync_unit_state.rpc_id(target_id, global_position, rotation.y, current_anim)
-				if not multiplayer.is_server() and not NetworkManager.connected_peers.has(1):
+				if not multiplayer.is_server() and not net_mgr.connected_peers.has(1):
 					sync_unit_state.rpc_id(1, global_position, rotation.y, current_anim)
 
 func _scan_for_enemies() -> void:
