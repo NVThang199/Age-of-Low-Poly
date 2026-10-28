@@ -9,6 +9,7 @@ func _process(_delta: float) -> bool:
 		print("--- Running Test Building Queue ---")
 		test_dual_queue_and_tech()
 		test_accepts_resource()
+		test_packed_scenes()
 		print("--- All Building Queue Tests PASSED ---")
 		quit(0)
 	return true
@@ -71,3 +72,25 @@ func test_accepts_resource() -> void:
 	tc.free()
 	granary.free()
 	pit.free()
+
+func test_packed_scenes() -> void:
+	var granary_scene: PackedScene = load("res://scenes/entities/granary.tscn")
+	assert(granary_scene != null, "granary.tscn must load")
+	var g_inst = granary_scene.instantiate()
+	assert(g_inst != null, "granary instance must not be null")
+	assert(g_inst.building_type == 4, "granary building_type must be GRANARY (4)")
+	g_inst.is_constructed = true
+	assert(g_inst.accepts_resource(ResourceSource.ResourceType.FOOD, false) == true, "granary instance accepts food")
+	assert(g_inst.accepts_resource(ResourceSource.ResourceType.WOOD, false) == false, "granary instance rejects wood")
+	g_inst.free()
+
+	var pit_scene: PackedScene = load("res://scenes/entities/storage_pit.tscn")
+	assert(pit_scene != null, "storage_pit.tscn must load")
+	var p_inst = pit_scene.instantiate()
+	assert(p_inst != null, "storage_pit instance must not be null")
+	assert(p_inst.building_type == 3, "storage_pit building_type must be STORAGE_PIT (3)")
+	p_inst.is_constructed = true
+	assert(p_inst.accepts_resource(ResourceSource.ResourceType.WOOD, false) == true, "storage pit instance accepts wood")
+	assert(p_inst.accepts_resource(ResourceSource.ResourceType.FOOD, true) == true, "storage pit instance accepts hunt meat")
+	p_inst.free()
+

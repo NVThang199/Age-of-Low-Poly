@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://s1t2o3r4a5g6e"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_storage_pit"]
+[ext_resource type="PackedScene" path="res://assets/models/storage_pit.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_s1"]
+size = Vector3(4.0, 2.2, 4.0)
+
+[node name="StoragePit" type="StaticBody3D"]
+script = ExtResource("1_storage_pit")
+building_type = 3
+max_hp = 600
+current_hp = 600
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape3D_s1")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

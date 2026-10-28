@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://g1r2a3n4a5r6y"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_granary"]
+[ext_resource type="PackedScene" path="res://assets/models/granary.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g1"]
+size = Vector3(3.6, 2.8, 3.6)
+
+[node name="Granary" type="StaticBody3D"]
+script = ExtResource("1_granary")
+building_type = 4
+max_hp = 600
+current_hp = 600
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("BoxShape3D_g1")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
