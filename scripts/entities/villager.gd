@@ -20,6 +20,8 @@ func _init() -> void:
 	current_hp = 25
 	move_speed = 5.0
 	melee_attack = 3
+	melee_armor = 0
+	pierce_armor = 0
 	right_hand_rotation = Vector3(0.0, 90.0, 0.0)
 
 func _ready() -> void:

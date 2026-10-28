@@ -39,6 +39,12 @@ var _net_sync_timer: float = 0.0
 @export var attack_range: float = 1.5
 @export var attack_cooldown: float = 1.2
 
+var base_melee_attack: int = 5
+var base_pierce_attack: int = 0
+var base_melee_armor: int = 0
+var base_pierce_armor: int = 1
+var _stats_initialized: bool = false
+
 @export_group("Equipment Sockets")
 @export var right_hand_offset: Vector3 = Vector3.ZERO
 @export var right_hand_rotation: Vector3 = Vector3.ZERO
@@ -297,10 +303,39 @@ func equip_item_left(scene_path: String) -> Node3D:
 func _ready() -> void:
 	add_to_group("units")
 	current_hp = max_hp
+	if not _stats_initialized:
+		base_melee_attack = melee_attack
+		base_pierce_attack = pierce_attack
+		base_melee_armor = melee_armor
+		base_pierce_armor = pierce_armor
+		_stats_initialized = true
+	apply_tech_modifiers()
+	var tm = get_node_or_null("/root/TechManager")
+	if tm and not tm.tech_completed.is_connected(_on_tech_completed):
+		tm.tech_completed.connect(_on_tech_completed)
 	_update_authority()
 	_create_selection_ring()
 	_create_hp_bar()
 	call_deferred("_init_animations")
+
+func _exit_tree() -> void:
+	var tm = get_node_or_null("/root/TechManager")
+	if tm and tm.tech_completed.is_connected(_on_tech_completed):
+		tm.tech_completed.disconnect(_on_tech_completed)
+
+func _on_tech_completed(peer_id: int, _tech_id: String) -> void:
+	if peer_id == owner_peer_id:
+		apply_tech_modifiers()
+
+func apply_tech_modifiers() -> void:
+	var tm = get_node_or_null("/root/TechManager")
+	if not tm:
+		return
+	var mods: Dictionary = tm.get_unit_modifiers(owner_peer_id, int(unit_type))
+	melee_attack = base_melee_attack + mods.get("melee_attack", 0)
+	pierce_attack = base_pierce_attack + mods.get("pierce_attack", 0)
+	melee_armor = base_melee_armor + mods.get("melee_armor", 0)
+	pierce_armor = base_pierce_armor + mods.get("pierce_armor", 0)
 
 func _update_authority() -> void:
 	if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer():
