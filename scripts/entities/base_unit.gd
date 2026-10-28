@@ -458,7 +458,7 @@ func _physics_process(delta: float) -> void:
 		UnitState.BUILDING:
 			pass
 
-	if multiplayer.has_multiplayer_peer() and is_multiplayer_authority():
+	if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and is_multiplayer_authority():
 		_net_sync_timer += delta
 		if _net_sync_timer >= NET_SYNC_INTERVAL:
 			_net_sync_timer = 0.0

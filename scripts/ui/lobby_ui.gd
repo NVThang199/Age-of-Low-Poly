@@ -1,6 +1,7 @@
 class_name LobbyUI
 extends Control
 
+@onready var offline_btn: Button = get_node_or_null("VBox/OfflineBtn")
 @onready var host_btn: Button = $VBox/HostBtn
 @onready var invite_btn: Button = $VBox/InviteBtn
 @onready var code_input: LineEdit = $VBox/HBox/CodeInput
@@ -9,6 +10,8 @@ extends Control
 @onready var status_lbl: Label = $VBox/StatusLbl
 
 func _ready() -> void:
+	if offline_btn:
+		offline_btn.pressed.connect(_on_offline_pressed)
 	host_btn.pressed.connect(_on_host_pressed)
 	invite_btn.pressed.connect(_on_invite_pressed)
 	join_btn.pressed.connect(_on_join_pressed)
@@ -21,6 +24,12 @@ func _ready() -> void:
 	if steam_mgr:
 		steam_mgr.lobby_created.connect(_on_lobby_created)
 		steam_mgr.lobby_joined.connect(_on_lobby_joined)
+
+func _on_offline_pressed() -> void:
+	var net_mgr := get_node_or_null("/root/NetworkManager")
+	if net_mgr:
+		net_mgr.disconnect_game()
+	get_tree().change_scene_to_file("res://scenes/core/main.tscn")
 
 func _on_host_pressed() -> void:
 	var steam_mgr := get_node_or_null("/root/SteamManager")
@@ -67,18 +76,35 @@ func _on_join_pressed() -> void:
 		if net_mgr:
 			net_mgr.join_game(0, raw_code)
 			status_lbl.text = "Da ket noi toi %s" % raw_code
-			start_btn.disabled = false
+			start_btn.disabled = true
 
 func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
 	if response == 1:
 		status_lbl.text = "Vao phong thanh cong! Lobby: %d" % lobby_id
+		var steam_mgr := get_node_or_null("/root/SteamManager")
 		var net_mgr := get_node_or_null("/root/NetworkManager")
+
+		# Quan trọng: Nếu là Host đã tạo phòng, tuyệt đối không gọi join_game đè lên chính mình!
+		if (steam_mgr and steam_mgr.is_host) or (net_mgr and net_mgr.is_host):
+			start_btn.disabled = false
+			return
+
 		if net_mgr:
 			var host_id: int = Steam.getLobbyOwner(lobby_id) if ClassDB.class_exists("Steam") else 0
 			net_mgr.join_game(host_id)
-		start_btn.disabled = false
+		start_btn.disabled = true
 	else:
 		status_lbl.text = "Vao phong that bai!"
 
 func _on_start_pressed() -> void:
+	var net_mgr := get_node_or_null("/root/NetworkManager")
+	if net_mgr and multiplayer.has_multiplayer_peer() and multiplayer.is_server():
+		for pid in net_mgr.connected_peers:
+			if pid != 1:
+				start_game_on_client.rpc_id(pid)
+		await get_tree().create_timer(0.1).timeout
+	get_tree().change_scene_to_file("res://scenes/core/main.tscn")
+
+@rpc("authority", "call_remote", "reliable")
+func start_game_on_client() -> void:
 	get_tree().change_scene_to_file("res://scenes/core/main.tscn")

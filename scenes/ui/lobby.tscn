@@ -46,6 +46,10 @@ layout_mode = 2
 text = "San sang tao hoac vao phong"
 horizontal_alignment = 1
 
+[node name="OfflineBtn" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Choi Don (Offline / Singleplayer)"
+
 [node name="HostBtn" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Tao Phong (Host 4 Nguoi)"
