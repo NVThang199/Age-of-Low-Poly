@@ -85,9 +85,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
+offset_left = -320.0
 offset_top = -80.0
-offset_right = 200.0
+offset_right = 320.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -98,15 +98,19 @@ theme_override_constants/separation = 10
 
 [node name="BuildHouseBtn" type="Button" parent="BuildMenu/HBox"]
 layout_mode = 2
-text = "House (Wood:30)"
+text = "House (30W)"
+
+[node name="BuildGranaryBtn" type="Button" parent="BuildMenu/HBox"]
+layout_mode = 2
+text = "Granary (120W)"
+
+[node name="BuildStoragePitBtn" type="Button" parent="BuildMenu/HBox"]
+layout_mode = 2
+text = "Storage Pit (120W)"
 
 [node name="BuildBarracksBtn" type="Button" parent="BuildMenu/HBox"]
 layout_mode = 2
-text = "Barracks (Wood:175)"
-
-[node name="BuildMineBtn" type="Button" parent="BuildMenu/HBox"]
-layout_mode = 2
-text = "Mining Camp (Wood:100)"
+text = "Barracks (175W)"
 
 [node name="CancelBuildBtn" type="Button" parent="BuildMenu/HBox"]
 layout_mode = 2
