@@ -192,7 +192,7 @@ func _return_to_dropoff(delta: float) -> void:
 
 	var dist := global_position.distance_to(target_dropoff.global_position)
 	var stop_dist := 4.2
-	if "building_type" in target_dropoff and target_dropoff.building_type == BaseBuilding.BuildingType.MINING_CAMP:
+	if "building_type" in target_dropoff and (target_dropoff.building_type == BaseBuilding.BuildingType.STORAGE_PIT or target_dropoff.building_type == BaseBuilding.BuildingType.GRANARY):
 		stop_dist = 3.2
 
 	# Tiến lại gần dropoff nếu chưa trong phạm vi hoặc bị chặn lại bởi dân khác khi tới sát trạm
@@ -249,9 +249,9 @@ func _find_nearest_dropoff() -> Node3D:
 			continue
 		if "is_constructed" in d and not d.is_constructed:
 			continue
-		# Mining Camp chỉ nhận GOLD và STONE
-		if "building_type" in d and d.building_type == BaseBuilding.BuildingType.MINING_CAMP:
-			if carried_type != ResourceSource.ResourceType.GOLD and carried_type != ResourceSource.ResourceType.STONE:
+		# Kiểm tra loại tài nguyên được kho chấp nhận
+		if d.has_method("accepts_resource"):
+			if not d.accepts_resource(carried_type, false):
 				continue
 		var dist := global_position.distance_to((d as Node3D).global_position)
 		if dist < min_dist:
