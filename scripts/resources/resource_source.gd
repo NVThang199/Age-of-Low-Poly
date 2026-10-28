@@ -9,6 +9,7 @@ enum ResourceType {
 }
 
 @export var resource_type: ResourceType = ResourceType.WOOD
+@export var is_meat: bool = false
 @export var max_amount: int = 300
 @export var current_amount: int = 300
 

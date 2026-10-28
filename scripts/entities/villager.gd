@@ -6,6 +6,7 @@ extends BaseUnit
 
 var carried_type: ResourceSource.ResourceType = ResourceSource.ResourceType.WOOD
 var carried_amount: int = 0
+var carried_is_meat: bool = false
 
 var target_resource: ResourceSource = null
 var target_dropoff: Node3D = null
@@ -110,6 +111,11 @@ func gather_from(source: ResourceSource) -> void:
 	_update_tool()
 
 func return_resources_to(dropoff: Node3D) -> void:
+	if dropoff and dropoff.has_method("accepts_resource"):
+		if not dropoff.accepts_resource(carried_type, carried_is_meat):
+			var valid_dropoff := _find_nearest_dropoff()
+			if valid_dropoff:
+				dropoff = valid_dropoff
 	target_dropoff = dropoff
 	if carried_amount > 0:
 		is_delivering = true
@@ -178,6 +184,7 @@ func _process_gathering(delta: float) -> void:
 	if gather_timer >= gather_rate:
 		gather_timer = 0.0
 		carried_type = target_resource.resource_type
+		carried_is_meat = target_resource.is_meat if "is_meat" in target_resource else false
 		var harvested := target_resource.gather(1)
 		carried_amount += harvested
 
@@ -196,12 +203,16 @@ func _return_to_dropoff(delta: float) -> void:
 		stop_dist = 3.2
 
 	# Tiến lại gần dropoff nếu chưa trong phạm vi hoặc bị chặn lại bởi dân khác khi tới sát trạm
-	var can_deposit := (dist <= stop_dist) or (dist <= stop_dist + 1.5 and stuck_timer > 0.12)
+	var can_deposit := (dist <= stop_dist) or (dist <= stop_dist + 1.5 and stuck_timer > 0.08)
 	if not can_deposit:
-		var diff := global_position - target_dropoff.global_position
-		diff.y = 0.0
-		var dir := diff.normalized() if diff.length_squared() > 0.01 else Vector3.FORWARD
-		target_position = target_dropoff.global_position + dir * maxf(1.5, stop_dist - 0.8)
+		var base_dir := global_position - target_dropoff.global_position
+		base_dir.y = 0.0
+		var angle: float = atan2(base_dir.x, base_dir.z) if base_dir.length_squared() > 0.05 else float(get_instance_id() % 8) * (PI / 4.0)
+		var slot_offset := float(get_instance_id() % 8) * (PI / 4.0) * 0.25
+		angle += slot_offset
+		var approach_dir := Vector3(sin(angle), 0.0, cos(angle)).normalized()
+		var target_radius := 2.2 if ("building_type" in target_dropoff and (target_dropoff.building_type == BaseBuilding.BuildingType.STORAGE_PIT or target_dropoff.building_type == BaseBuilding.BuildingType.GRANARY)) else 3.0
+		target_position = target_dropoff.global_position + approach_dir * target_radius
 		_process_movement(delta)
 		play_anim("Walk_Carry")
 		return
@@ -211,6 +222,7 @@ func _return_to_dropoff(delta: float) -> void:
 	if target_dropoff.has_method("deposit_resource") and carried_amount > 0:
 		target_dropoff.deposit_resource(owner_peer_id, carried_type, carried_amount)
 		carried_amount = 0
+		carried_is_meat = false
 	is_delivering = false
 	_update_tool()
 
@@ -251,7 +263,7 @@ func _find_nearest_dropoff() -> Node3D:
 			continue
 		# Kiểm tra loại tài nguyên được kho chấp nhận
 		if d.has_method("accepts_resource"):
-			if not d.accepts_resource(carried_type, false):
+			if not d.accepts_resource(carried_type, carried_is_meat):
 				continue
 		var dist := global_position.distance_to((d as Node3D).global_position)
 		if dist < min_dist:
