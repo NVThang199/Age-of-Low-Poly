@@ -2,21 +2,31 @@ extends Node3D
 ## Handles building placement with ghost preview
 
 enum BuildingType {
+	TOWN_CENTER,
 	HOUSE,
 	BARRACKS,
-	MINE,
+	STORAGE_PIT,
+	GRANARY,
+	WATCH_TOWER,
+	SMALL_WALL,
 }
 
 const BUILDING_COSTS = {
 	"house": {"wood": 30},
 	"barracks": {"wood": 175},
-	"mine": {"wood": 100},
+	"granary": {"wood": 120},
+	"storage_pit": {"wood": 120},
+	"small_wall": {"stone": 5},
+	"watch_tower": {"stone": 150},
 }
 
 const BUILDING_SCENES = {
 	"house": "res://scenes/entities/house.tscn",
 	"barracks": "res://scenes/entities/barracks.tscn",
-	"mine": "res://scenes/entities/mine.tscn",
+	"granary": "res://scenes/entities/granary.tscn",
+	"storage_pit": "res://scenes/entities/storage_pit.tscn",
+	"small_wall": "res://scenes/entities/small_wall.tscn",
+	"watch_tower": "res://scenes/entities/watch_tower.tscn",
 }
 
 var is_placing: bool = false
@@ -81,13 +91,18 @@ func _on_build_requested(building_type: String) -> void:
 		_cancel_placement()
 		return
 
+	var my_id = multiplayer.get_unique_id() if multiplayer.has_multiplayer_peer() else 1
+	var tech_mgr = get_node_or_null("/root/TechManager")
+	if tech_mgr and not tech_mgr.is_building_unlocked(my_id, building_type):
+		print("Building is locked: ", building_type)
+		return
+
 	# Check if player can afford
 	var cost = BUILDING_COSTS.get(building_type, {})
 	var game_mgr = get_node_or_null("/root/GameManager")
 	if not game_mgr:
 		return
 
-	var my_id = multiplayer.get_unique_id() if multiplayer.has_multiplayer_peer() else 1
 	for res_name in cost:
 		var res_type = _get_resource_type(res_name)
 		if game_mgr.get_resource(my_id, res_type) < cost[res_name]:
@@ -286,7 +301,8 @@ func _cancel_placement() -> void:
 
 func _get_resource_type(res_name: String) -> int:
 	match res_name:
-		"food": return 0  # ResourceSource.ResourceType.FOOD
-		"wood": return 1  # ResourceSource.ResourceType.WOOD
-		"gold": return 2  # ResourceSource.ResourceType.GOLD
-	return 0
+		"food": return ResourceSource.ResourceType.FOOD
+		"wood": return ResourceSource.ResourceType.WOOD
+		"gold": return ResourceSource.ResourceType.GOLD
+		"stone": return ResourceSource.ResourceType.STONE
+	return ResourceSource.ResourceType.WOOD

@@ -89,6 +89,8 @@ func is_tech_researched(peer_id: int, tech_id: String) -> bool:
 	return tech_id in researched_techs[peer_id]
 
 func is_building_unlocked(peer_id: int, b_type: String) -> bool:
+	if b_type in ["house", "barracks", "granary", "storage_pit", "town_center"]:
+		return true
 	if not unlocked_buildings.has(peer_id):
 		return false
 	return unlocked_buildings[peer_id].get(b_type, false)
