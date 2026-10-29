@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://d3m8siegecatapult1b"]
+
+[ext_resource type="Script" path="res://scripts/entities/siege_catapult.gd" id="1_catapult"]
+[ext_resource type="PackedScene" path="res://assets/models/catapult.glb" id="2_model_catapult"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_catapult"]
+size = Vector3(1.2, 1.6, 1.4)
+
+[node name="SiegeCatapult" type="CharacterBody3D"]
+script = ExtResource("1_catapult")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("BoxShape3D_catapult")
+
+[node name="Model" parent="." instance=ExtResource("2_model_catapult")]
+transform = Transform3D(-1.2, 0, -1.04907e-07, 0, 1.2, 0, 1.04907e-07, 0, -1.2, 0, 0, 0)
+
+[node name="RightHandSocket" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="LeftHandSocket" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

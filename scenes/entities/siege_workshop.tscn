@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://ddtrelqc1rs16"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/siege_workshop.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_workshop"]
+size = Vector3(4.2, 3.4, 4.2)
+
+[node name="SiegeWorkshop" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 12
+max_hp = 800
+current_hp = 800
+build_time = 35.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+shape = SubResource("BoxShape3D_workshop")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

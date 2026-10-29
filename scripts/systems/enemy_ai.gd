@@ -27,7 +27,8 @@ func _process(delta: float) -> void:
 
 func _trigger_raid_wave() -> void:
 	print("EnemyAI: Launching Raid Wave #%d!" % _wave_index)
-	SoundManager.play_sound("horn")
+	var sm := get_node_or_null("/root/SoundManager")
+	if sm: sm.play_sound("horn")
 	var swordsman_scene := load(SWORDSMAN_SCENE_PATH) as PackedScene
 	var archer_scene := load(ARCHER_SCENE_PATH) as PackedScene
 

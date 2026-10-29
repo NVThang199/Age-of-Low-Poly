@@ -1,7 +1,13 @@
+# Fact 1: Called by scenes/ui/hud.tscn
+# Fact 2: Verified minimap structure via Grep in scripts/ui/minimap.gd
+# Fact 3: In-memory only; connects to FogOfWar singleton
+# Fact 4: User request: "ok nếu cần dùng animation thì dùng trong folder C:\Users\nguye\Godot_v4.7.2-stable_win64.exe\git\Age-of-Low-Poly\assets\animations nếu không có thì tự làm cho tôi dùng blender mcp và godot mcp"
+
 extends SubViewportContainer
 
 @onready var viewport: SubViewport = $SubViewport
 var minimap_camera: Camera3D = null
+var _fog_rect: TextureRect = null
 
 func _ready() -> void:
 	# Find the minimap camera in the main scene
@@ -14,6 +20,19 @@ func _ready() -> void:
 			minimap_camera.reparent(viewport)
 		else:
 			viewport.add_child(minimap_camera)
+
+	# Overlay sương mù chiến trận trên Minimap
+	_fog_rect = TextureRect.new()
+	_fog_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fog_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fog_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_fog_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	add_child(_fog_rect)
+
+func _process(_delta: float) -> void:
+	var fow = get_node_or_null("/root/FogOfWar")
+	if _fog_rect and fow and _fog_rect.texture == null:
+		_fog_rect.texture = fow.get_fog_texture()
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:

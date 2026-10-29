@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://gbgwwwd4j8wj"]
+
+[ext_resource type="Script" path="res://scripts/entities/lion.gd" id="1_l"]
+[ext_resource type="PackedScene" path="res://assets/models/lion.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_lion"]
+radius = 0.5
+height = 1.6
+
+[node name="Lion" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_l")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_lion")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

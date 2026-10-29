@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://b516v1luyxpft"]
 
+[ext_resource type="Script" path="res://scripts/core/main_game.gd" id="1_main"]
 [ext_resource type="Script" uid="uid://c6bv8rxcmf6l6" path="res://scripts/camera/rts_camera.gd" id="1_c"]
 [ext_resource type="Material" uid="uid://bj8nxw8hmk8t1" path="res://materials/ground_grass.tres" id="1_fu2j5"]
 [ext_resource type="Script" uid="uid://cq667dq7ee85y" path="res://scripts/systems/selection_system.gd" id="2_s"]
@@ -51,6 +52,7 @@ size = Vector2(200, 200)
 [sub_resource type="QuadMesh" id="QuadMesh_lwqq7"]
 
 [node name="Main" type="Node3D" unique_id=490325983]
+script = ExtResource("1_main")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=587736379]
 environment = SubResource("Environment_ns4lk")

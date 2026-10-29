@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://w4tch1t0w3r5"]
+
+[ext_resource type="Script" path="res://scripts/entities/watch_tower.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/watch_tower.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tower"]
+size = Vector3(2.4, 7.5, 2.4)
+
+[node name="WatchTower" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 5
+max_hp = 500
+current_hp = 500
+build_time = 30.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.75, 0)
+shape = SubResource("BoxShape3D_tower")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

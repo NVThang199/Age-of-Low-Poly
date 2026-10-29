@@ -13,25 +13,65 @@ signal game_ended(winner_peer_id: int)
 var player_resources: Dictionary = {}
 var player_population: Dictionary = {}
 
+# Cấu hình trận đấu được chọn từ Lobby theo yêu cầu AoE 1
+enum MapVisibility {
+	NORMAL_FOG = 0,   # Đen toàn bộ (Fog of War tiêu chuẩn AoE 1)
+	EXPLORED = 1,     # Đã mở toàn bộ địa hình và mỏ, ẩn quân địch
+	ALL_VISIBLE = 2   # Sáng toàn bản đồ (Marco Polo / All Visible)
+}
+
+var selected_map_type: int = 4 # HIGHLAND
+var selected_map_size: int = 2 # MEDIUM (180x180)
+var selected_map_visibility: int = MapVisibility.NORMAL_FOG
+var selected_map_seed: int = 0
+var selected_player_count: int = 2
+var selected_starting_age: int = 0 # 0=Stone, 1=Tool, 2=Bronze, 3=Iron
+var selected_starting_resources_preset: int = 0 # 0=Default, 1=Medium, 2=High, 3=Deathmatch
+
 func _ready() -> void:
 	# Khởi tạo mặc định cho singleplayer / test chạy thẳng scene
 	init_player(1)
-	await get_tree().process_frame
-	recalculate_max_pop(1)
+	if is_inside_tree() and get_tree():
+		await get_tree().process_frame
+		recalculate_max_pop(1)
+
+func _get_local_peer_id() -> int:
+	if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer():
+		return multiplayer.get_unique_id()
+	return 1
 
 func init_player(peer_id: int) -> void:
-	if player_resources.has(peer_id):
-		return
+	var f := 200
+	var w := 200
+	var g := 100
+	var s := 0
+
+	match selected_starting_resources_preset:
+		1: # Medium
+			f = 500; w = 500; g = 300; s = 150
+		2: # High
+			f = 1000; w = 1000; g = 1000; s = 1000
+		3: # Deathmatch
+			f = 20000; w = 20000; g = 10000; s = 5000
+		_: # Default AoE 1
+			f = 200; w = 200; g = 100; s = 0
+
 	player_resources[peer_id] = {
-		ResourceSource.ResourceType.FOOD: 200,
-		ResourceSource.ResourceType.WOOD: 200,
-		ResourceSource.ResourceType.GOLD: 100,
-		ResourceSource.ResourceType.STONE: 0,
+		ResourceSource.ResourceType.FOOD: f,
+		ResourceSource.ResourceType.WOOD: w,
+		ResourceSource.ResourceType.GOLD: g,
+		ResourceSource.ResourceType.STONE: s,
 	}
 	player_population[peer_id] = {
 		"current": 3,
 		"max": 10,
 	}
+
+func reset_match_resources() -> void:
+	for pid in player_resources.keys():
+		init_player(pid)
+		for res_type in player_resources[pid].keys():
+			resource_updated.emit(pid, res_type, player_resources[pid][res_type])
 
 func add_resource(peer_id: int, res_type: int, amount: int) -> void:
 	if not player_resources.has(peer_id):
@@ -40,7 +80,7 @@ func add_resource(peer_id: int, res_type: int, amount: int) -> void:
 	print("[GameManager] Resource added: peer_id=", peer_id, " type=", res_type, " amount=", amount, " new_total=", player_resources[peer_id][res_type])
 	resource_updated.emit(peer_id, res_type, player_resources[peer_id][res_type])
 
-	var my_id := multiplayer.get_unique_id() if multiplayer.has_multiplayer_peer() else 1
+	var my_id := _get_local_peer_id()
 	if my_id != 1 and (peer_id == 1 or peer_id == my_id):
 		var other_id := my_id if peer_id == 1 else 1
 		if not player_resources.has(other_id):
@@ -54,7 +94,7 @@ func spend_resource(peer_id: int, res_type: int, amount: int) -> bool:
 	if player_resources[peer_id][res_type] >= amount:
 		player_resources[peer_id][res_type] -= amount
 		resource_updated.emit(peer_id, res_type, player_resources[peer_id][res_type])
-		var my_id := multiplayer.get_unique_id() if multiplayer.has_multiplayer_peer() else 1
+		var my_id := _get_local_peer_id()
 		if my_id != 1 and (peer_id == 1 or peer_id == my_id):
 			var other_id := my_id if peer_id == 1 else 1
 			if not player_resources.has(other_id):
@@ -65,7 +105,7 @@ func spend_resource(peer_id: int, res_type: int, amount: int) -> bool:
 	return false
 
 func get_resource(peer_id: int, res_type: int) -> int:
-	var my_id := multiplayer.get_unique_id() if multiplayer.has_multiplayer_peer() else 1
+	var my_id := _get_local_peer_id()
 	var target_id := peer_id
 	if not player_resources.has(target_id):
 		if target_id == 1 and player_resources.has(my_id):

@@ -1,3 +1,8 @@
+# Fact 1: Called by scripts/ui/hud.gd, scenes/core/main.tscn
+# Fact 2: Verified building types in scripts/entities/base_building.gd
+# Fact 3: In-memory placement logic; references scene files in res://scenes/entities/
+# Fact 4: User request: "tôi bảo bạn làm full game cho tôi hãy dùng cả blender mcp để làm mà đừng làm một vài chức năng làm full tất cả mọi thứ cho tôi làm sao để game giống game gốc"
+
 extends Node3D
 ## Handles building placement with ghost preview
 
@@ -9,6 +14,12 @@ enum BuildingType {
 	GRANARY,
 	WATCH_TOWER,
 	SMALL_WALL,
+	FARM,
+	MARKET,
+	ARCHERY_RANGE,
+	STABLE,
+	TEMPLE,
+	SIEGE_WORKSHOP,
 }
 
 const BUILDING_COSTS = {
@@ -16,6 +27,12 @@ const BUILDING_COSTS = {
 	"barracks": {"wood": 175},
 	"granary": {"wood": 120},
 	"storage_pit": {"wood": 120},
+	"farm": {"wood": 75},
+	"archery_range": {"wood": 150},
+	"stable": {"wood": 150},
+	"market": {"wood": 150},
+	"temple": {"wood": 200},
+	"siege_workshop": {"wood": 200},
 	"small_wall": {"stone": 5},
 	"watch_tower": {"stone": 150},
 }
@@ -25,6 +42,12 @@ const BUILDING_SCENES = {
 	"barracks": "res://scenes/entities/barracks.tscn",
 	"granary": "res://scenes/entities/granary.tscn",
 	"storage_pit": "res://scenes/entities/storage_pit.tscn",
+	"farm": "res://scenes/entities/farm.tscn",
+	"archery_range": "res://scenes/entities/archery_range.tscn",
+	"stable": "res://scenes/entities/stable.tscn",
+	"market": "res://scenes/entities/market.tscn",
+	"temple": "res://scenes/entities/temple.tscn",
+	"siege_workshop": "res://scenes/entities/siege_workshop.tscn",
 	"small_wall": "res://scenes/entities/small_wall.tscn",
 	"watch_tower": "res://scenes/entities/watch_tower.tscn",
 }

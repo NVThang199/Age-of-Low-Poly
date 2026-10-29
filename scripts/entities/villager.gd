@@ -1,3 +1,8 @@
+# Fact 1: Called by scripts/systems/command_manager.gd:268, scripts/systems/command_manager.gd:274, scripts/systems/command_manager.gd:279
+# Fact 2: Verified villager methods via Grep in scripts/entities/villager.gd
+# Fact 3: In-memory only; no external data files read or written
+# Fact 4: User request: "ok nếu cần dùng animation thì dùng trong folder C:\Users\nguye\Godot_v4.7.2-stable_win64.exe\git\Age-of-Low-Poly\assets\animations nếu không có thì tự làm cho tôi dùng blender mcp và godot mcp"
+
 class_name Villager
 extends BaseUnit
 
@@ -68,9 +73,23 @@ func _process_building(delta: float) -> void:
 		return
 
 	if target_building.is_constructed:
-		state = UnitState.IDLE
+		var finished_building := target_building
 		target_building = null
 		_update_tool()
+		if not command_queue.is_empty():
+			pop_next_command()
+			return
+		if finished_building.building_type == BaseBuilding.BuildingType.FARM:
+			if finished_building.has_node("ResourceSource"):
+				var farm_res = finished_building.get_node("ResourceSource")
+				if farm_res is ResourceSource:
+					gather_from(farm_res)
+					return
+		var next_b := _find_nearby_unconstructed_building(20.0)
+		if next_b:
+			construct_building(next_b)
+			return
+		state = UnitState.IDLE
 		return
 
 	var dist := global_position.distance_to(target_building.global_position)
@@ -93,8 +112,8 @@ func _process_building(delta: float) -> void:
 	play_anim("Sword_Regular_Combo")
 	target_building.construct(delta, 1.0)
 
-func move_to(target_pos: Vector3) -> void:
-	super.move_to(target_pos)
+func move_to(target_pos: Vector3, new_sub_state: ActionSubState = ActionSubState.MOVE_NO_SEARCH) -> void:
+	super.move_to(target_pos, new_sub_state)
 	is_delivering = false
 	_update_tool()
 
@@ -224,7 +243,10 @@ func _return_to_dropoff(delta: float) -> void:
 		if target_resource:
 			state = UnitState.GATHERING
 		else:
-			state = UnitState.IDLE
+			if not command_queue.is_empty():
+				pop_next_command()
+			else:
+				state = UnitState.IDLE
 
 func _find_best_perimeter_slot(center: Vector3, radius: float) -> Vector3:
 	var units := get_tree().get_nodes_in_group("units")
@@ -284,15 +306,43 @@ func _find_best_perimeter_slot(center: Vector3, radius: float) -> Vector3:
 	return best_pos
 
 func _find_nearest_resource_of_type(type: ResourceSource.ResourceType) -> ResourceSource:
-	var resources := get_tree().get_nodes_in_group("resources")
+	var candidates: Array[Node3D] = []
+	var sg = get_node_or_null("/root/SpatialGrid")
+	if sg:
+		candidates = sg.search_radius(global_position, 32.0, "resources")
+	else:
+		for r in get_tree().get_nodes_in_group("resources"):
+			if r is Node3D: candidates.append(r as Node3D)
+
 	var nearest: ResourceSource = null
-	var min_dist := 25.0
-	for r in resources:
-		if r is ResourceSource and is_instance_valid(r) and r.resource_type == type and r.current_amount > 0:
-			var d := global_position.distance_to(r.global_position)
+	var min_dist := 32.0
+	for cand in candidates:
+		if cand is ResourceSource and is_instance_valid(cand) and cand.resource_type == type and cand.current_amount > 0:
+			var d := global_position.distance_to(cand.global_position)
 			if d < min_dist:
 				min_dist = d
-				nearest = r
+				nearest = cand
+	return nearest
+
+func _find_nearby_unconstructed_building(max_dist: float) -> BaseBuilding:
+	var candidates: Array[Node3D] = []
+	var sg = get_node_or_null("/root/SpatialGrid")
+	if sg:
+		candidates = sg.search_radius(global_position, max_dist, "buildings")
+	else:
+		for b in get_tree().get_nodes_in_group("buildings"):
+			if b is Node3D: candidates.append(b as Node3D)
+
+	var nearest: BaseBuilding = null
+	var min_dist := max_dist
+	for cand in candidates:
+		if cand is BaseBuilding and is_instance_valid(cand) and not cand.is_constructed:
+			var b_peer: int = cand.owner_peer_id if "owner_peer_id" in cand else 1
+			if b_peer == owner_peer_id:
+				var d := global_position.distance_to(cand.global_position)
+				if d < min_dist:
+					min_dist = d
+					nearest = cand
 	return nearest
 
 func _find_nearest_dropoff() -> Node3D:

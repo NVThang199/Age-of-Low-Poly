@@ -1,0 +1,24 @@
+; Fact 1: Called by scripts/systems/random_map_generator.gd and tests/test_wildlife_ai.gd
+; Fact 2: Verified no existing gazelle scene via Glob in scenes/entities/
+; Fact 3: Godot 4 text scene schema (format=3) instantiating CharacterBody3D with Gazelle script and gazelle.glb model
+; Fact 4: User verbatim instruction: "cũng như bạn chưa hề làm voi, sư tử, nai, cũng như chưa có cơ chế random map hoặc xây theo loại map highland hay một loạt các loại map ở game gốc, tôi cần bạn clone i nguyên sang cho tôi"
+
+[gd_scene format=3 uid="uid://c8n1a2i3g4a5z"]
+
+[ext_resource type="Script" path="res://scripts/entities/gazelle.gd" id="1_g"]
+[ext_resource type="PackedScene" path="res://assets/models/gazelle.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gazelle"]
+radius = 0.35
+height = 1.4
+
+[node name="Gazelle" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_g")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("CapsuleShape3D_gazelle")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://st4bl310"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/stable.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stable"]
+size = Vector3(4.0, 3.0, 4.0)
+
+[node name="Stable" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 10
+max_hp = 750
+current_hp = 750
+build_time = 30.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_stable")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

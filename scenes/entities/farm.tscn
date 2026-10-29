@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://cadrf85mjl8qg"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="Script" path="res://scripts/resources/resource_source.gd" id="2_resource"]
+[ext_resource type="PackedScene" path="res://assets/models/farm.glb" id="3_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_farm"]
+size = Vector3(3.6, 0.4, 3.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_res"]
+size = Vector3(3.4, 0.5, 3.4)
+
+[node name="Farm" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 7
+max_hp = 100
+current_hp = 100
+build_time = 15.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+shape = SubResource("BoxShape3D_farm")
+
+[node name="Model" parent="." instance=ExtResource("3_model")]
+
+[node name="ResourceSource" type="StaticBody3D" parent="."]
+script = ExtResource("2_resource")
+resource_type = 0
+max_amount = 300
+current_amount = 300
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ResourceSource"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("BoxShape3D_res")

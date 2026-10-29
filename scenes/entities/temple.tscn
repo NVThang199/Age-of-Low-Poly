@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://t3mpl311"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/temple.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_temple"]
+size = Vector3(4.2, 4.4, 4.2)
+
+[node name="Temple" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 11
+max_hp = 850
+current_hp = 850
+build_time = 35.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+shape = SubResource("BoxShape3D_temple")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

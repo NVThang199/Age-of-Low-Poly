@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cpheyej058csw"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/archery_range.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_archery"]
+size = Vector3(4.0, 2.8, 3.8)
+
+[node name="ArcheryRange" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 9
+max_hp = 700
+current_hp = 700
+build_time = 30.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("BoxShape3D_archery")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

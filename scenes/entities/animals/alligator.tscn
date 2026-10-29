@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://1l2l3i4g5a6t"]
+
+[ext_resource type="Script" path="res://scripts/entities/alligator.gd" id="1_a"]
+[ext_resource type="PackedScene" path="res://assets/models/alligator.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gator"]
+size = Vector3(0.9, 0.6, 2.4)
+
+[node name="Alligator" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_a")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_gator")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

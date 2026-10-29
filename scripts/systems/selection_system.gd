@@ -67,6 +67,8 @@ func _single_select(screen_pos: Vector2) -> void:
 			_select_building(collider)
 		elif collider.is_in_group("resources"):
 			_select_resource(collider)
+		elif collider.is_in_group("animals"):
+			_select_animal(collider)
 	selection_changed.emit(selected_units)
 
 func _select_resource(res: Node) -> void:
@@ -75,6 +77,13 @@ func _select_resource(res: Node) -> void:
 		res.set_selected(true)
 	if res.has_method("flash_highlight"):
 		res.flash_highlight()
+
+func _select_animal(animal: Node) -> void:
+	selected_units.append(animal)
+	if animal.has_method("set_selected"):
+		animal.set_selected(true)
+	if animal.has_method("flash_highlight"):
+		animal.flash_highlight()
 
 func _select_building(b: Node) -> void:
 	selected_units.append(b)

@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://c4v4lry1sc0ut"]
+
+[ext_resource type="Script" path="res://scripts/entities/cavalry.gd" id="1_cavalry"]
+[ext_resource type="PackedScene" path="res://assets/animations/UAL1_Standard.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_c1"]
+radius = 0.5
+height = 1.8
+
+[node name="Cavalry" type="CharacterBody3D"]
+script = ExtResource("1_cavalry")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_c1")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(-1.15, 0, -1.00536e-07, 0, 1.15, 0, 1.00536e-07, 0, -1.15, 0, 0, 0)
+
+[node name="RightHandSocket" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="LeftHandSocket" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

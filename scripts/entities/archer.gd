@@ -41,4 +41,5 @@ func _perform_attack(target: Node) -> void:
 	arrow.set("damage", pierce_attack)
 	get_parent().add_child(arrow)
 	arrow.global_position = global_position + Vector3(0.0, 1.2, 0.0)
-	SoundManager.play_sound("arrow")
+	var sm := get_node_or_null("/root/SoundManager")
+	if sm: sm.play_sound("arrow")

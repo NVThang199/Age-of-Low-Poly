@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://m4rk3t8"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/market.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_market"]
+size = Vector3(4.0, 3.0, 4.0)
+
+[node name="Market" type="StaticBody3D"]
+script = ExtResource("1_building")
+building_type = 8
+max_hp = 600
+current_hp = 600
+build_time = 25.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_market")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

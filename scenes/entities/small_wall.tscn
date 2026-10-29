@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://sm4llw4ll001"]
+
+[ext_resource type="Script" path="res://scripts/entities/base_building.gd" id="1_building"]
+[ext_resource type="PackedScene" path="res://assets/models/small_wall.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(2.0, 1.8, 0.8)
+
+[node name="SmallWall" type="StaticBody3D" groups=["buildings"]]
+script = ExtResource("1_building")
+building_type = 6
+max_hp = 200
+current_hp = 200
+build_time = 5.0
+pop_bonus = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("BoxShape3D_wall")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

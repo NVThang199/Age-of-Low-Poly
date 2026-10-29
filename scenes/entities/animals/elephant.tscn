@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://566s1suwxffv"]
+
+[ext_resource type="Script" path="res://scripts/entities/elephant.gd" id="1_e"]
+[ext_resource type="PackedScene" path="res://assets/models/elephant.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_elephant"]
+size = Vector3(1.8, 2.4, 3.2)
+
+[node name="Elephant" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_e")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("BoxShape3D_elephant")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

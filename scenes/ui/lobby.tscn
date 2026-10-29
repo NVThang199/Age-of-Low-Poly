@@ -1,8 +1,56 @@
 [gd_scene format=3 uid="uid://ghgjwkebj8v7"]
 
-[ext_resource type="Script" path="res://scripts/ui/lobby_ui.gd" id="1_l"]
+[ext_resource type="Script" uid="uid://bdo30p0bp4qpo" path="res://scripts/ui/lobby_ui.gd" id="1_l"]
 
-[node name="Lobby" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12, 0.09, 0.07, 0.75)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.82, 0.68, 0.32, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.24, 0.18, 0.12, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.88, 0.45, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
+bg_color = Color(0.1, 0.08, 0.06, 0.94)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.72, 0.35, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Lobby" type="Control" unique_id=104719297]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,16 +59,15 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_l")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="MainMenu" type="Control" parent="." unique_id=2122076666]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.12, 0.15, 0.2, 1)
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="MainMenu" unique_id=683118580]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -28,54 +75,344 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -160.0
-offset_top = -140.0
+offset_top = -60.0
 offset_right = 160.0
-offset_bottom = 140.0
+offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="VBox"]
+[node name="SinglePlayerBtn" type="Button" parent="MainMenu/VBox" unique_id=840852357]
+custom_minimum_size = Vector2(300, 42)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "AOE RTS STEAM LOBBY"
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Single Player"
+
+[node name="MultiplayerBtn" type="Button" parent="MainMenu/VBox" unique_id=1755722852]
+custom_minimum_size = Vector2(300, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Multiplayer"
+
+[node name="HelpBtn" type="Button" parent="MainMenu/VBox" unique_id=920444089]
+custom_minimum_size = Vector2(300, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Help"
+
+[node name="ScenarioBtn" type="Button" parent="MainMenu/VBox" unique_id=1936007066]
+custom_minimum_size = Vector2(300, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Scenario Builder"
+
+[node name="ExitBtn" type="Button" parent="MainMenu/VBox" unique_id=22875214]
+custom_minimum_size = Vector2(300, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Exit"
+
+[node name="CopyrightLbl" type="Label" parent="MainMenu" unique_id=432257129]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -42.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.9, 0.82, 0.6, 0.85)
+theme_override_font_sizes/font_size = 12
+text = "Microsoft® Age of Empires™ / Low Poly Edition
+© & ℗ 1997 Microsoft Corporation. All rights reserved."
 horizontal_alignment = 1
 
-[node name="StatusLbl" type="Label" parent="VBox"]
+[node name="SetupDialog" type="PanelContainer" parent="." unique_id=1796206816]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -240.0
+offset_right = 320.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="SetupDialog" unique_id=111228586]
 layout_mode = 2
-text = "San sang tao hoac vao phong"
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="SetupDialog/VBox" unique_id=627583386]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_font_sizes/font_size = 22
+text = "GAME SETUP - RANDOM MAP"
 horizontal_alignment = 1
 
-[node name="OfflineBtn" type="Button" parent="VBox"]
-layout_mode = 2
-text = "Choi Don (Offline / Singleplayer)"
-
-[node name="HostBtn" type="Button" parent="VBox"]
-layout_mode = 2
-text = "Tao Phong (Host 4 Nguoi)"
-
-[node name="InviteBtn" type="Button" parent="VBox"]
-layout_mode = 2
-text = "Moi Ban Be (Steam Overlay)"
-
-[node name="HSeparator" type="HSeparator" parent="VBox"]
+[node name="HSeparator" type="HSeparator" parent="SetupDialog/VBox" unique_id=65375241]
 layout_mode = 2
 
-[node name="HBox" type="HBoxContainer" parent="VBox"]
+[node name="Grid" type="GridContainer" parent="SetupDialog/VBox" unique_id=50067466]
 layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 12
+columns = 2
 
-[node name="CodeInput" type="LineEdit" parent="VBox/HBox"]
+[node name="LblMapType" type="Label" parent="SetupDialog/VBox/Grid" unique_id=1325195026]
+layout_mode = 2
+text = "Map Type:"
+
+[node name="OptMapType" type="OptionButton" parent="SetupDialog/VBox/Grid" unique_id=915990070]
+custom_minimum_size = Vector2(360, 34)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "Nhap Invite Code / IP"
 
-[node name="JoinBtn" type="Button" parent="VBox/HBox"]
+[node name="LblMapSize" type="Label" parent="SetupDialog/VBox/Grid" unique_id=1819246426]
 layout_mode = 2
-text = "Vao Phong"
+text = "Map Size:"
 
-[node name="HSeparator2" type="HSeparator" parent="VBox"]
+[node name="OptMapSize" type="OptionButton" parent="SetupDialog/VBox/Grid" unique_id=702710756]
+custom_minimum_size = Vector2(360, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LblMapVis" type="Label" parent="SetupDialog/VBox/Grid" unique_id=2094867166]
+layout_mode = 2
+text = "Map Visibility:"
+
+[node name="OptMapVis" type="OptionButton" parent="SetupDialog/VBox/Grid" unique_id=1300003560]
+custom_minimum_size = Vector2(360, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LblStartAge" type="Label" parent="SetupDialog/VBox/Grid" unique_id=808201316]
+layout_mode = 2
+text = "Starting Age:"
+
+[node name="OptStartAge" type="OptionButton" parent="SetupDialog/VBox/Grid" unique_id=1522270717]
+custom_minimum_size = Vector2(360, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LblResources" type="Label" parent="SetupDialog/VBox/Grid" unique_id=62631447]
+layout_mode = 2
+text = "Starting Resources:"
+
+[node name="OptResources" type="OptionButton" parent="SetupDialog/VBox/Grid" unique_id=331217817]
+custom_minimum_size = Vector2(360, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LblPlayers" type="Label" parent="SetupDialog/VBox/Grid" unique_id=403217597]
+layout_mode = 2
+text = "Number of Players:"
+
+[node name="OptPlayers" type="OptionButton" parent="SetupDialog/VBox/Grid" unique_id=1333029214]
+custom_minimum_size = Vector2(360, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator2" type="HSeparator" parent="SetupDialog/VBox" unique_id=844536225]
 layout_mode = 2
 
-[node name="StartBtn" type="Button" parent="VBox"]
+[node name="Actions" type="HBoxContainer" parent="SetupDialog/VBox" unique_id=1917082211]
 layout_mode = 2
-text = "Vao Tran Dau (Start Game)"
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="StartMatchBtn" type="Button" parent="SetupDialog/VBox/Actions" unique_id=280324755]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "START GAME"
+
+[node name="CancelSetupBtn" type="Button" parent="SetupDialog/VBox/Actions" unique_id=1966116282]
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "CANCEL"
+
+[node name="MultiplayerDialog" type="PanelContainer" parent="." unique_id=78557350]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="MultiplayerDialog" unique_id=1953517120]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="MultiplayerDialog/VBox" unique_id=1070598371]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_font_sizes/font_size = 22
+text = "MULTIPLAYER LOBBY"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="MultiplayerDialog/VBox" unique_id=1771789557]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "Ready to host or join room"
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="MultiplayerDialog/VBox" unique_id=400353030]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="HostBtn" type="Button" parent="MultiplayerDialog/VBox/Actions" unique_id=2019104058]
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Create Room (Host)"
+
+[node name="InviteBtn" type="Button" parent="MultiplayerDialog/VBox/Actions" unique_id=1903014868]
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Invite Friends"
+
+[node name="JoinBtn" type="Button" parent="MultiplayerDialog/VBox/Actions" unique_id=1817984112]
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Join Room"
+
+[node name="CodeHBox" type="HBoxContainer" parent="MultiplayerDialog/VBox" unique_id=1451674342]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CodeInput" type="LineEdit" parent="MultiplayerDialog/VBox/CodeHBox" unique_id=1020449242]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Enter Invite Code / IP Address"
+
+[node name="StartGameBtn" type="Button" parent="MultiplayerDialog/VBox" unique_id=824941667]
+custom_minimum_size = Vector2(240, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "ENTER MATCH (START)"
+
+[node name="BackBtn" type="Button" parent="MultiplayerDialog/VBox" unique_id=497148027]
+custom_minimum_size = Vector2(140, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "BACK"
+
+[node name="HelpDialog" type="PanelContainer" parent="." unique_id=791337528]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -220.0
+offset_right = 300.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="HelpDialog" unique_id=866236598]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="HelpDialog/VBox" unique_id=257612332]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_font_sizes/font_size = 20
+text = "AGE OF EMPIRES - CONTROLS & FEATURES"
+horizontal_alignment = 1
+
+[node name="Content" type="RichTextLabel" parent="HelpDialog/VBox" unique_id=1445771581]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[b]Mouse Controls:[/b]
+- Left Click: Select unit, building, animal, or resource. Drag to box-select.
+- Right Click: Move, Gather (trees/berries/mines/meat), Construct, Attack.
+
+[b]Keyboard Shortcuts:[/b]
+- [color=yellow]B[/color]: Villager Economic Buildings menu (Granary, Storage Pit, Farm, House).
+- [color=yellow]V[/color]: Villager Military Buildings menu (Barracks, Archery, Stable, Tower).
+- [color=yellow]X / Esc[/color]: Cancel placement or return to main action menu.
+- [color=yellow]F10 or ~[/color]: [b]DEVTOOL[/b] (Spawn any unit/animal/building, cheats, toggle fog).
+
+[b]Wildlife & Meat:[/b]
+- [b]Nai (Gazelle):[/b] Chạy trốn khi lại gần (150 thịt).
+- [b]Voi (Elephant):[/b] Đánh trả khi bị đánh, câu về TC (300 thịt).
+- [b]Sư tử & Cá sấu:[/b] Thú ăn thịt hung dữ, tự động săn mồi (100 thịt)."
+
+[node name="CloseHelpBtn" type="Button" parent="HelpDialog/VBox" unique_id=709411788]
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "CLOSE"

@@ -1,3 +1,8 @@
+# Fact 1: Called by scripts/entities/villager.gd:82, scripts/systems/command_manager.gd:92
+# Fact 2: Verified BaseBuilding structure via Grep in scripts/entities/base_building.gd
+# Fact 3: In-memory only; defines building entities and types
+# Fact 4: User request: "ok nếu cần dùng animation thì dùng trong folder C:\Users\nguye\Godot_v4.7.2-stable_win64.exe\git\Age-of-Low-Poly\assets\animations nếu không có thì tự làm cho tôi dùng blender mcp và godot mcp"
+
 class_name BaseBuilding
 extends StaticBody3D
 
@@ -12,6 +17,14 @@ enum BuildingType {
 	GRANARY = 4,
 	WATCH_TOWER = 5,
 	SMALL_WALL = 6,
+	FARM = 7,
+	MARKET = 8,
+	ARCHERY_RANGE = 9,
+	STABLE = 10,
+	TEMPLE = 11,
+	SIEGE_WORKSHOP = 12,
+	ACADEMY = 13,
+	GOVERNMENT_CENTER = 14,
 }
 
 @export var building_type: BuildingType = BuildingType.TOWN_CENTER
@@ -45,6 +58,15 @@ func _ready() -> void:
 	rally_point = global_position + Vector3(0.0, 0.0, 5.0)
 	_create_selection_box()
 	_create_building_hp_bar()
+
+func _process(delta: float) -> void:
+	if not is_constructed:
+		return
+	_process_production(delta)
+	if building_hp_bar_pivot and building_hp_bar_pivot.visible:
+		var cam := get_viewport().get_camera_3d()
+		if cam:
+			building_hp_bar_pivot.look_at(cam.global_position, Vector3.UP)
 
 var building_hp_bar_pivot: Node3D = null
 var building_hp_bar_fill: MeshInstance3D = null
@@ -321,6 +343,35 @@ func _spawn_unit(scene_path: String) -> void:
 
 	if unit.has_method("move_to"):
 		unit.move_to(rally_point)
+
+	if multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.is_server():
+		var net_mgr = get_node_or_null("/root/NetworkManager")
+		if net_mgr and "connected_peers" in net_mgr:
+			for pid in net_mgr.connected_peers:
+				if pid != 1:
+					sync_client_spawn_unit.rpc_id(pid, scene_path, unit.name, spawn_pos, owner_peer_id)
+
+@rpc("authority", "call_remote", "reliable")
+func sync_client_spawn_unit(scene_path: String, unit_name: String, spawn_pos: Vector3, peer_owner: int) -> void:
+	if not is_inside_tree():
+		return
+	if not multiplayer or not multiplayer.has_multiplayer_peer():
+		return
+	var local_id := multiplayer.get_unique_id()
+	if local_id == 0 or multiplayer.is_server():
+		return
+	if not ResourceLoader.exists(scene_path):
+		return
+	var scene := load(scene_path) as PackedScene
+	if not scene:
+		return
+	var u := scene.instantiate() as BaseUnit
+	if not u:
+		return
+	u.name = unit_name
+	u.owner_peer_id = peer_owner
+	get_parent().add_child(u)
+	u.global_position = spawn_pos
 
 func construct(delta: float, builder_speed: float = 1.0) -> void:
 	if is_constructed:

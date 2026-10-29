@@ -9,6 +9,8 @@ enum UnitType {
 	INFANTRY = 1,
 	ARCHER = 2,
 	CAVALRY = 3,
+	PRIEST = 4,
+	SIEGE = 5,
 }
 
 enum UnitState {
@@ -18,9 +20,37 @@ enum UnitState {
 	GATHERING = 3,
 	BUILDING = 4,
 	DEAD = 5,
+	HEALING = 6,
+	CONVERTING = 7,
+}
+
+enum ActionSubState {
+	NONE = 0,
+	DONE = 1,
+	WAIT = 2,
+	SEARCH = 3,
+	GOTO = 4,
+	WORK = 6,
+	RETURN = 8,
+	MOVE = 11,
+	ATTACK = 12,
+	FAILED = 13,
+	MOVE_NO_SEARCH = 15,
+}
+
+enum UnitStance {
+	AGGRESSIVE = 0,
+	DEFENSIVE = 1,
+	STAND_GROUND = 2,
+	NO_ATTACK = 3,
 }
 
 @export var unit_type: UnitType = UnitType.INFANTRY
+@export var stance: UnitStance = UnitStance.AGGRESSIVE
+var sub_state: ActionSubState = ActionSubState.NONE
+var home_position: Vector3 = Vector3.ZERO
+var command_queue: Array[Dictionary] = []
+var _search_cooldown: float = 0.0
 @export var owner_peer_id: int = 1:
 	set(val):
 		owner_peer_id = val
@@ -319,9 +349,17 @@ func _ready() -> void:
 	_update_authority()
 	_create_selection_ring()
 	_create_hp_bar()
+	home_position = global_position
+	_search_cooldown = randf_range(0.0, 0.25)
+	var sg = get_node_or_null("/root/SpatialGrid")
+	if sg:
+		sg.register_entity(self)
 	call_deferred("_init_animations")
 
 func _exit_tree() -> void:
+	var sg = get_node_or_null("/root/SpatialGrid")
+	if sg:
+		sg.unregister_entity(self)
 	var tm = get_node_or_null("/root/TechManager")
 	if tm and tm.tech_completed.is_connected(_on_tech_completed):
 		tm.tech_completed.disconnect(_on_tech_completed)
@@ -472,6 +510,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	attack_timer = maxf(0.0, attack_timer - delta)
+	_search_cooldown = maxf(0.0, _search_cooldown - delta)
 
 	match state:
 		UnitState.IDLE:
@@ -479,6 +518,8 @@ func _physics_process(delta: float) -> void:
 			_scan_for_enemies()
 		UnitState.MOVING:
 			_process_movement(delta)
+			if sub_state != ActionSubState.MOVE_NO_SEARCH:
+				_scan_for_enemies()
 		UnitState.ATTACKING:
 			_process_attack(delta)
 		UnitState.BUILDING:
@@ -503,28 +544,51 @@ func _physics_process(delta: float) -> void:
 func _scan_for_enemies() -> void:
 	if unit_type == UnitType.VILLAGER:
 		return # Dân làng không tự động săn lùng kẻ thù
-	var units := get_tree().get_nodes_in_group("units")
-	var nearest_enemy: Node = null
-	var min_d := 9.0 # Tầm nhìn tự động cảnh giới (Aggro Range)
-	for u in units:
-		if u is BaseUnit and is_instance_valid(u) and u.owner_peer_id != owner_peer_id and u.state != UnitState.DEAD:
-			var d := global_position.distance_to(u.global_position)
-			if d < min_d:
-				min_d = d
-				nearest_enemy = u
+	if sub_state == ActionSubState.MOVE_NO_SEARCH:
+		return # Lệnh ép di chuyển bỏ qua quét mục tiêu
+	if stance == UnitStance.NO_ATTACK:
+		return
 
-	if not nearest_enemy:
-		# Quét công trình đối phương lân cận
-		var buildings := get_tree().get_nodes_in_group("buildings")
-		for b in buildings:
-			if b is BaseBuilding and is_instance_valid(b) and b.owner_peer_id != owner_peer_id:
-				var d := global_position.distance_to(b.global_position)
-				if d < min_d:
-					min_d = d
-					nearest_enemy = b
+	if _search_cooldown > 0.0:
+		return
+	_search_cooldown = 0.25 # Staggered 4Hz scan
 
-	if nearest_enemy:
-		attack_target(nearest_enemy)
+	var candidates: Array[Node3D] = []
+	var sg = get_node_or_null("/root/SpatialGrid")
+	if sg:
+		candidates = sg.search_radius(global_position, 12.0)
+	else:
+		for u in get_tree().get_nodes_in_group("units"):
+			if u is Node3D: candidates.append(u as Node3D)
+		for b in get_tree().get_nodes_in_group("buildings"):
+			if b is Node3D: candidates.append(b as Node3D)
+
+	var best_target: Node3D = null
+	var best_score: float = -INF
+
+	for cand in candidates:
+		if not is_instance_valid(cand):
+			continue
+		var cand_peer: int = cand.owner_peer_id if "owner_peer_id" in cand else 1
+		if cand_peer == owner_peer_id:
+			continue
+		if "state" in cand and cand.state == UnitState.DEAD:
+			continue
+
+		var dist := global_position.distance_to(cand.global_position)
+		if stance == UnitStance.STAND_GROUND and dist > attack_range:
+			continue
+		if stance == UnitStance.DEFENSIVE and home_position != Vector3.ZERO:
+			if home_position.distance_to(cand.global_position) > 8.0:
+				continue
+
+		var score := TargetEvaluator.evaluate(self, cand)
+		if score > best_score:
+			best_score = score
+			best_target = cand
+
+	if best_target and best_score > -100.0:
+		attack_target(best_target)
 
 func _process_movement(delta: float) -> void:
 	if unit_type == UnitType.VILLAGER:
@@ -539,8 +603,13 @@ func _process_movement(delta: float) -> void:
 	var stop_threshold: float = maxf(0.35, move_speed * delta * 1.5)
 	if dist <= stop_threshold:
 		global_position = Vector3(target_position.x, global_position.y, target_position.z)
+		var sg = get_node_or_null("/root/SpatialGrid")
+		if sg:
+			sg.update_entity(self)
 		if state == UnitState.MOVING:
 			state = UnitState.IDLE
+			sub_state = ActionSubState.NONE
+			pop_next_command()
 		velocity = Vector3.ZERO
 		stuck_timer = 0.0
 		unmoving_timer = 0.0
@@ -711,13 +780,29 @@ func _process_movement(delta: float) -> void:
 func _process_attack(_delta: float) -> void:
 	if not is_instance_valid(target_entity):
 		state = UnitState.IDLE
+		sub_state = ActionSubState.NONE
 		target_entity = null
+		pop_next_command()
 		return
 
-	var dist := global_position.distance_to(target_entity.global_position)
+	# Kiểm tra Leash distance cho tư thế phòng thủ (Defensive Stance)
+	if stance == UnitStance.DEFENSIVE and home_position != Vector3.ZERO:
+		if global_position.distance_to(home_position) > 8.0:
+			target_entity = null
+			move_to(home_position, ActionSubState.GOTO)
+			return
+
+	var dist := global_position.distance_to((target_entity as Node3D).global_position)
 	var effective_range := attack_range
 	if target_entity is BaseBuilding:
 		effective_range = maxf(attack_range, 3.8) # Bán kính chạm biên công trình
+
+	# Tư thế giữ vị trí: nếu mục tiêu ngoài tầm, ngừng truy đuổi
+	if stance == UnitStance.STAND_GROUND and dist > effective_range:
+		target_entity = null
+		state = UnitState.IDLE
+		sub_state = ActionSubState.NONE
+		return
 
 	if dist > effective_range:
 		if target_entity is BaseBuilding:
@@ -727,7 +812,7 @@ func _process_attack(_delta: float) -> void:
 			var approach_dir: Vector3 = to_me.normalized() if to_me.length_squared() > 0.05 else Vector3.FORWARD
 			target_position = b_pos + approach_dir * (effective_range - 0.5)
 		else:
-			target_position = target_entity.global_position
+			target_position = (target_entity as Node3D).global_position
 		_process_movement(_delta)
 		return
 
@@ -749,7 +834,15 @@ func _process_attack(_delta: float) -> void:
 
 func _perform_attack(target: Node) -> void:
 	if target.has_method("take_damage"):
-		var damage: int = maxi(1, melee_attack - (target.melee_armor if "melee_armor" in target else 0))
+		var elev_mod: float = 1.0
+		if target is Node3D:
+			var diff_y: float = global_position.y - (target as Node3D).global_position.y
+			if diff_y >= 0.8:
+				elev_mod = 1.33 # Đánh từ trên cao xuống +33%
+			elif diff_y <= -0.8:
+				elev_mod = 0.67 # Đánh từ chân dốc lên -33%
+		var raw_dmg: int = melee_attack - (target.melee_armor if "melee_armor" in target else 0)
+		var damage: int = maxi(1, int(round(float(raw_dmg) * elev_mod)))
 		target.take_damage(damage, self)
 
 func take_damage(amount: int, _attacker: Node = null) -> void:
@@ -759,11 +852,20 @@ func take_damage(amount: int, _attacker: Node = null) -> void:
 	current_hp = maxi(0, current_hp - amount)
 	health_changed.emit(current_hp, max_hp)
 
+	# Phản công tự vệ nếu đang rảnh và không ở tư thế NO_ATTACK
+	if _attacker and is_instance_valid(_attacker) and state == UnitState.IDLE and stance != UnitStance.NO_ATTACK:
+		attack_target(_attacker)
+
 	if current_hp <= 0:
 		_die()
 
 func _die() -> void:
 	state = UnitState.DEAD
+	sub_state = ActionSubState.NONE
+	command_queue.clear()
+	var sg = get_node_or_null("/root/SpatialGrid")
+	if sg:
+		sg.unregister_entity(self)
 	died.emit(self)
 	remove_from_group("units")
 	set_selected(false)
@@ -783,10 +885,11 @@ func _die() -> void:
 	t.tween_interval(1.5)
 	t.tween_callback(queue_free)
 
-func move_to(target_pos: Vector3) -> void:
+func move_to(target_pos: Vector3, new_sub_state: ActionSubState = ActionSubState.MOVE_NO_SEARCH) -> void:
 	target_position = target_pos
 	target_entity = null
 	state = UnitState.MOVING
+	sub_state = new_sub_state
 	stuck_timer = 0.0
 	unmoving_timer = 0.0
 	avoidance_timer = 0.0
@@ -796,6 +899,43 @@ func move_to(target_pos: Vector3) -> void:
 func attack_target(target: Node) -> void:
 	target_entity = target
 	state = UnitState.ATTACKING
+	sub_state = ActionSubState.ATTACK
+
+func queue_command(cmd: Dictionary) -> void:
+	command_queue.append(cmd)
+
+func pop_next_command() -> void:
+	if command_queue.is_empty():
+		return
+	var next_cmd: Dictionary = command_queue.pop_front()
+	var cmd_type: String = next_cmd.get("type", "move")
+	var pos: Vector3 = next_cmd.get("target_pos", next_cmd.get("pos", Vector3.ZERO))
+	var target_node: Node = next_cmd.get("target_node", next_cmd.get("target", null))
+	match cmd_type:
+		"move", "move_no_search":
+			move_to(pos, ActionSubState.MOVE_NO_SEARCH)
+		"attack_move":
+			move_to(pos, ActionSubState.GOTO)
+		"attack":
+			if is_instance_valid(target_node):
+				attack_target(target_node)
+			else:
+				move_to(pos)
+		"gather":
+			if has_method("gather_from") and is_instance_valid(target_node):
+				call("gather_from", target_node)
+			else:
+				move_to(pos)
+		"deposit":
+			if has_method("return_resources_to") and is_instance_valid(target_node):
+				call("return_resources_to", target_node)
+			else:
+				move_to(pos)
+		"build":
+			if has_method("construct_building") and is_instance_valid(target_node):
+				call("construct_building", target_node)
+			else:
+				move_to(pos)
 
 func set_selected(selected: bool) -> void:
 	is_selected = selected

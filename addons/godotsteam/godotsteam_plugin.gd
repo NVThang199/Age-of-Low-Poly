@@ -23,7 +23,8 @@ func _disable_plugin() -> void:
 
 
 func _enter_tree() -> void:
-	print_rich("GodotSteam v%s | %s | %s" % [Steam.get_godotsteam_version(), link_website, link_changelog])
+	if Steam and Steam.has_method("get_godotsteam_version"):
+		print_rich("GodotSteam v%s | %s | %s" % [Steam.get_godotsteam_version(), link_website, link_changelog])
 	add_project_settings()
 	check_for_updates()
 

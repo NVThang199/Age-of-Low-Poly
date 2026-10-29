@@ -9,6 +9,8 @@ extends Node
 @onready var selection_system: SelectionSystem = $"../SelectionSystem"
 @onready var camera: Camera3D = $"../CameraController/Camera3D"
 
+var attack_move_mode: bool = false
+
 func _ready() -> void:
 	var net_mgr := get_node_or_null("/root/NetworkManager")
 	if net_mgr and not net_mgr.command_received.is_connected(_on_command_received):
@@ -25,14 +27,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if not selection_system or selection_system.selected_units.is_empty():
+		attack_move_mode = false
+		return
+
+	# Phím A kích hoạt chế độ Attack-Move
+	if event is InputEventKey and event.keycode == KEY_A and event.is_pressed():
+		attack_move_mode = true
 		return
 
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_RIGHT and mb.is_pressed():
-			_handle_right_click(mb.position)
+			attack_move_mode = false
+			_handle_command_click(mb.position, false, mb.shift_pressed)
+		elif mb.button_index == MOUSE_BUTTON_LEFT and mb.is_pressed() and attack_move_mode:
+			attack_move_mode = false
+			_handle_command_click(mb.position, true, mb.shift_pressed)
 
-func _handle_right_click(screen_pos: Vector2) -> void:
+func _handle_command_click(screen_pos: Vector2, is_attack_move: bool = false, is_shift: bool = false) -> void:
 	if not camera:
 		camera = get_viewport().get_camera_3d()
 	if not camera:
@@ -68,6 +80,13 @@ func _handle_right_click(screen_pos: Vector2) -> void:
 	if is_instance_valid(collider) and collider.is_in_group("resources"):
 		action_type = "gather"
 		target_node = collider
+	elif is_instance_valid(collider) and collider.is_in_group("animals"):
+		if "state" in collider and collider.state == 5:
+			action_type = "gather"
+			target_node = collider
+		else:
+			action_type = "attack"
+			target_node = collider
 	elif is_instance_valid(collider) and collider.is_in_group("dropoffs"):
 		var d_peer: int = collider.owner_peer_id if "owner_peer_id" in collider else 1
 		var is_friendly: bool = (d_peer == my_id) or not multiplayer.has_multiplayer_peer()
@@ -100,7 +119,7 @@ func _handle_right_click(screen_pos: Vector2) -> void:
 			action_type = "gather"
 			target_node = nearby_res
 		else:
-			action_type = "move"
+			action_type = "attack_move" if is_attack_move else "move"
 
 	# Phản hồi thị giác tức thì cho client ra lệnh
 	_spawn_feedback_marker(action_type, target_pos, target_node)
@@ -110,7 +129,8 @@ func _handle_right_click(screen_pos: Vector2) -> void:
 	var payload: Dictionary = {
 		"unit_names": unit_names,
 		"target_pos": target_pos,
-		"target_path": target_path
+		"target_path": target_path,
+		"is_shift": is_shift
 	}
 
 	var net_mgr := get_node_or_null("/root/NetworkManager")
@@ -151,6 +171,7 @@ func _execute_command(action_type: String, payload: Dictionary, sender_peer: int
 	var raw_names: Array = payload.get("unit_names", [])
 	var target_pos: Vector3 = payload.get("target_pos", Vector3.ZERO)
 	var target_path: NodePath = payload.get("target_path", NodePath(""))
+	var is_shift: bool = payload.get("is_shift", false)
 
 	var units: Array = []
 	for uname in raw_names:
@@ -176,29 +197,31 @@ func _execute_command(action_type: String, payload: Dictionary, sender_peer: int
 				var to_pos := target_pos - b_pos
 				to_pos.y = 0.0
 				var dir := to_pos.normalized() if to_pos.length_squared() > 0.05 else Vector3.FORWARD
-				_execute_move(units, b_pos + dir * radius)
+				_execute_move(units, b_pos + dir * radius, BaseUnit.ActionSubState.MOVE_NO_SEARCH, is_shift)
 			else:
-				_execute_move(units, target_pos)
+				_execute_move(units, target_pos, BaseUnit.ActionSubState.MOVE_NO_SEARCH, is_shift)
+		"attack_move":
+			_execute_move(units, target_pos, BaseUnit.ActionSubState.GOTO, is_shift)
 		"gather":
 			if is_instance_valid(target_node):
-				_execute_gather(units, target_node)
+				_execute_gather(units, target_node, is_shift)
 			else:
-				_execute_move(units, target_pos)
+				_execute_move(units, target_pos, BaseUnit.ActionSubState.MOVE_NO_SEARCH, is_shift)
 		"deposit":
 			if is_instance_valid(target_node):
-				_execute_deposit(units, target_node)
+				_execute_deposit(units, target_node, is_shift)
 			else:
-				_execute_move(units, target_pos)
+				_execute_move(units, target_pos, BaseUnit.ActionSubState.MOVE_NO_SEARCH, is_shift)
 		"build":
 			if is_instance_valid(target_node):
-				_execute_build(units, target_node)
+				_execute_build(units, target_node, is_shift)
 			else:
-				_execute_move(units, target_pos)
+				_execute_move(units, target_pos, BaseUnit.ActionSubState.MOVE_NO_SEARCH, is_shift)
 		"attack":
 			if is_instance_valid(target_node):
-				_execute_attack(units, target_node)
+				_execute_attack(units, target_node, is_shift)
 			else:
-				_execute_move(units, target_pos)
+				_execute_move(units, target_pos, BaseUnit.ActionSubState.GOTO, is_shift)
 
 func _resolve_unit(unit_identifier: Variant) -> Node:
 	if unit_identifier is Node:
@@ -229,46 +252,72 @@ func _find_nearby_resource(pos: Vector3, max_dist: float) -> Node:
 				nearest = r
 	return nearest
 
-func _execute_move(units: Array, pos: Vector3) -> void:
+func _execute_move(units: Array, pos: Vector3, sub_state: int = BaseUnit.ActionSubState.MOVE_NO_SEARCH, is_shift: bool = false) -> void:
 	var count: int = units.size()
 	if count <= 1:
 		for u in units:
-			if is_instance_valid(u) and u.has_method("move_to"):
-				u.move_to(pos)
+			if is_instance_valid(u):
+				if is_shift and u.has_method("queue_command"):
+					u.queue_command({"type": "move", "pos": pos, "sub_state": sub_state})
+				elif u.has_method("move_to"):
+					u.move_to(pos, sub_state)
 		return
 
 	var cols := int(ceilf(sqrt(float(count))))
 	var spacing := 1.8
 	var idx := 0
 	for u in units:
-		if is_instance_valid(u) and u.has_method("move_to"):
+		if is_instance_valid(u):
 			@warning_ignore("integer_division")
 			var row := idx / cols
 			var col := idx % cols
 			var offset_x := (col - float(cols - 1) / 2.0) * spacing
 			var offset_z := (row - float(cols - 1) / 2.0) * spacing
-			u.move_to(pos + Vector3(offset_x, 0.0, offset_z))
+			var slot_pos := pos + Vector3(offset_x, 0.0, offset_z)
+			if is_shift and u.has_method("queue_command"):
+				u.queue_command({"type": "move", "pos": slot_pos, "sub_state": sub_state})
+			elif u.has_method("move_to"):
+				u.move_to(slot_pos, sub_state)
 			idx += 1
 
-func _execute_gather(units: Array, res: Node) -> void:
+func _execute_gather(units: Array, res: Node, is_shift: bool = false) -> void:
 	for u in units:
-		if is_instance_valid(u) and u.has_method("gather_from"):
-			u.gather_from(res)
+		if is_instance_valid(u):
+			if is_shift and u.has_method("queue_command"):
+				u.queue_command({"type": "gather", "target": res})
+			elif u.has_method("gather_from"):
+				u.gather_from(res)
 
-func _execute_deposit(units: Array, dropoff: Node) -> void:
+func _execute_deposit(units: Array, dropoff: Node, is_shift: bool = false) -> void:
 	for u in units:
-		if is_instance_valid(u) and u.has_method("return_resources_to"):
-			u.return_resources_to(dropoff)
+		if is_instance_valid(u):
+			if is_shift and u.has_method("queue_command"):
+				u.queue_command({"type": "deposit", "target": dropoff})
+			elif u.has_method("return_resources_to"):
+				u.return_resources_to(dropoff)
 
-func _execute_build(units: Array, building: Node) -> void:
+func _execute_build(units: Array, building: Node, is_shift: bool = false) -> void:
 	for u in units:
-		if is_instance_valid(u) and u.has_method("construct_building"):
-			u.construct_building(building)
+		if is_instance_valid(u):
+			if is_shift and u.has_method("queue_command"):
+				u.queue_command({"type": "build", "target": building})
+			elif u.has_method("construct_building"):
+				u.construct_building(building)
 
-func _execute_attack(units: Array, target: Node) -> void:
+func _execute_attack(units: Array, target: Node, is_shift: bool = false) -> void:
 	for u in units:
-		if is_instance_valid(u) and u.has_method("attack_target"):
-			u.attack_target(target)
+		if is_instance_valid(u):
+			if is_shift and u.has_method("queue_command"):
+				u.queue_command({"type": "attack", "target": target})
+			elif u is Priest and is_instance_valid(target):
+				var p := u as Priest
+				var t_peer: int = target.owner_peer_id if "owner_peer_id" in target else 1
+				if t_peer == p.owner_peer_id:
+					if target is BaseUnit: p.heal_unit(target as BaseUnit)
+				else:
+					if target is Node3D: p.convert_target(target as Node3D)
+			elif u.has_method("attack_target"):
+				u.attack_target(target)
 
 func _spawn_click_marker(pos: Vector3, color: Color, radius: float = 0.65) -> void:
 	var marker := MeshInstance3D.new()

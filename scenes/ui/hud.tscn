@@ -1,8 +1,75 @@
+; Fact 1: Called by scenes/core/main.tscn:132
+; Fact 2: Replaces old temporary HUD layout in scenes/ui/hud.tscn
+; Fact 3: Godot 4 text scene schema (format=3), displays resources, age, selection details, minimap
+; Fact 4: User request: "bạn thiết kế lại UI UX cho tôi bạn phải làm sao để giống game gốc [Image #1] nó rất đơn giản nhưng lại có mọi thứ và phải lên đời/ research thì mới hiện các côgn trình chứ hiện tại bạn cứ để bừa trên màn hình là không được"
+
 [gd_scene format=3 uid="uid://506u1kuxxofs"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_h"]
 [ext_resource type="Script" path="res://scripts/ui/minimap.gd" id="2_minimap"]
 [ext_resource type="Script" path="res://scripts/ui/selection_box.gd" id="3_selbox"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_wood.png" id="4_wood"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_food.png" id="5_food"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_gold.png" id="6_gold"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_stone.png" id="7_stone"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_pop.png" id="8_pop"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_sword.png" id="9_sword"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_shield.png" id="10_shield"]
+[ext_resource type="Texture2D" path="res://assets/ui/pharaoh_relief.png" id="11_pharaoh"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_hammer_econ.png" id="12_hecon"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_hammer_mil.png" id="13_hmil"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_repair.png" id="14_repair"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_cancel.png" id="15_cancel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
+bg_color = Color(0.82, 0.71, 0.55, 1)
+border_width_bottom = 2
+border_color = Color(0.43, 0.31, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+bg_color = Color(0.12, 0.09, 0.06, 0.8)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottomconsole"]
+bg_color = Color(0.77, 0.64, 0.46, 1)
+border_width_left = 2
+border_width_top = 3
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.92, 0.84, 0.71, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_recessed"]
+bg_color = Color(0.06, 0.05, 0.04, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.26, 0.16, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
+bg_color = Color(0.45, 0.08, 0.08, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.15, 0.85, 0.15, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_center"]
+bg_color = Color(0.72, 0.58, 0.39, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.28, 0.16, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_minimap"]
+bg_color = Color(0.64, 0.50, 0.31, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.20, 0.11, 1)
 
 [node name="HUD" type="Control"]
 layout_mode = 3
@@ -28,126 +95,379 @@ script = ExtResource("3_selbox")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 40.0
+offset_bottom = 34.0
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
 
-[node name="HBox" type="HBoxContainer" parent="TopBar"]
+[node name="Margin" type="MarginContainer" parent="TopBar"]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 2
 
-[node name="FoodLabel" type="Label" parent="TopBar/HBox"]
+[node name="HBox" type="HBoxContainer" parent="TopBar/Margin"]
 layout_mode = 2
-text = "Food: 200"
+theme_override_constants/separation = 20
 
-[node name="WoodLabel" type="Label" parent="TopBar/HBox"]
+[node name="ResWood" type="HBoxContainer" parent="TopBar/Margin/HBox"]
 layout_mode = 2
-text = "Wood: 200"
+theme_override_constants/separation = 4
 
-[node name="GoldLabel" type="Label" parent="TopBar/HBox"]
+[node name="Icon" type="TextureRect" parent="TopBar/Margin/HBox/ResWood"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
-text = "Gold: 100"
+texture = ExtResource("4_wood")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="StoneLabel" type="Label" parent="TopBar/HBox"]
+[node name="WoodLabel" type="Label" parent="TopBar/Margin/HBox/ResWood"]
 layout_mode = 2
-text = "Stone: 0"
+theme_override_colors/font_color = Color(0.18, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+text = "200"
 
-[node name="PopLabel" type="Label" parent="TopBar/HBox"]
+[node name="ResFood" type="HBoxContainer" parent="TopBar/Margin/HBox"]
 layout_mode = 2
-text = "Pop: 3/10"
+theme_override_constants/separation = 4
 
-[node name="MinimapContainer" type="PanelContainer" parent="."]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -210.0
-offset_top = -210.0
-offset_right = -10.0
-offset_bottom = -10.0
-grow_horizontal = 0
-grow_vertical = 0
-
-[node name="MinimapViewport" type="SubViewportContainer" parent="MinimapContainer"]
+[node name="Icon" type="TextureRect" parent="TopBar/Margin/HBox/ResFood"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
-stretch = true
-script = ExtResource("2_minimap")
+texture = ExtResource("5_food")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="SubViewport" type="SubViewport" parent="MinimapContainer/MinimapViewport"]
-size = Vector2i(200, 200)
-render_target_update_mode = 4
-
-[node name="BuildMenu" type="PanelContainer" parent="."]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -320.0
-offset_top = -80.0
-offset_right = 320.0
-offset_bottom = -10.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="HBox" type="HBoxContainer" parent="BuildMenu"]
+[node name="FoodLabel" type="Label" parent="TopBar/Margin/HBox/ResFood"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_colors/font_color = Color(0.18, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+text = "200"
 
-[node name="BuildHouseBtn" type="Button" parent="BuildMenu/HBox"]
+[node name="ResGold" type="HBoxContainer" parent="TopBar/Margin/HBox"]
 layout_mode = 2
-text = "House (30W)"
+theme_override_constants/separation = 4
 
-[node name="BuildGranaryBtn" type="Button" parent="BuildMenu/HBox"]
+[node name="Icon" type="TextureRect" parent="TopBar/Margin/HBox/ResGold"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
-text = "Granary (120W)"
+texture = ExtResource("6_gold")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="BuildStoragePitBtn" type="Button" parent="BuildMenu/HBox"]
+[node name="GoldLabel" type="Label" parent="TopBar/Margin/HBox/ResGold"]
 layout_mode = 2
-text = "Storage Pit (120W)"
+theme_override_colors/font_color = Color(0.18, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+text = "100"
 
-[node name="BuildBarracksBtn" type="Button" parent="BuildMenu/HBox"]
+[node name="ResStone" type="HBoxContainer" parent="TopBar/Margin/HBox"]
 layout_mode = 2
-text = "Barracks (175W)"
+theme_override_constants/separation = 4
 
-[node name="CancelBuildBtn" type="Button" parent="BuildMenu/HBox"]
+[node name="Icon" type="TextureRect" parent="TopBar/Margin/HBox/ResStone"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
-text = "Cancel"
+texture = ExtResource("7_stone")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="ActionPanel" type="PanelContainer" parent="."]
+[node name="StoneLabel" type="Label" parent="TopBar/Margin/HBox/ResStone"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+text = "0"
+
+[node name="ResPop" type="HBoxContainer" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="TopBar/Margin/HBox/ResPop"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+texture = ExtResource("8_pop")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PopLabel" type="Label" parent="TopBar/Margin/HBox/ResPop"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+text = "3/10"
+
+[node name="SpacerLeft" type="Control" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AgeLabel" type="Label" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.80, 0.20, 1)
+theme_override_font_sizes/font_size = 15
+text = "Stone Age"
+
+[node name="SpacerRight" type="Control" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="YearLabel" type="Label" parent="TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32, 0.24, 0.14, 1)
+theme_override_font_sizes/font_size = 14
+text = "2500 B.C."
+
+[node name="TooltipBanner" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = -140.0
-offset_right = 320.0
-offset_bottom = -10.0
+offset_left = 12.0
+offset_top = -174.0
+offset_right = 420.0
+offset_bottom = -148.0
 grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
 
-[node name="VBox" type="VBoxContainer" parent="ActionPanel"]
+[node name="Margin" type="MarginContainer" parent="TooltipBanner"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+
+[node name="TooltipLabel" type="Label" parent="TooltipBanner/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.94, 0.80, 1)
+theme_override_font_sizes/font_size = 13
+text = "Click to select units or buildings."
+
+[node name="BottomConsole" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -144.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_bottomconsole")
+
+[node name="Margin" type="MarginContainer" parent="BottomConsole"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="HBox" type="HBoxContainer" parent="BottomConsole/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LeftInfoBox" type="PanelContainer" parent="BottomConsole/Margin/HBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_recessed")
+
+[node name="Margin" type="MarginContainer" parent="BottomConsole/Margin/HBox/LeftInfoBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EntityTitle" type="Label" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_font_sizes/font_size = 14
+text = "No Selection"
+
+[node name="DetailsHBox" type="HBoxContainer" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Thumbnail" type="TextureRect" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatsVBox" type="VBoxContainer" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="HPBar" type="ProgressBar" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+value = 100.0
+show_percentage = false
+
+[node name="HPLabel" type="Label" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = "HP: -- / --"
+
+[node name="CombatHBox" type="HBoxContainer" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SwordIcon" type="TextureRect" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox/CombatHBox"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("9_sword")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AtkLabel" type="Label" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox/CombatHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0"
+
+[node name="ShieldIcon" type="TextureRect" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox/CombatHBox"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("10_shield")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ArmLabel" type="Label" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox/DetailsHBox/StatsVBox/CombatHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0 / 0"
+
+[node name="StatusOrQueueLabel" type="Label" parent="BottomConsole/Margin/HBox/LeftInfoBox/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.72, 0.60, 1)
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 2
+
+[node name="CenterActionBox" type="PanelContainer" parent="BottomConsole/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_center")
+
+[node name="Margin" type="MarginContainer" parent="BottomConsole/Margin/HBox/CenterActionBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="PharaohRelief" type="TextureRect" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin"]
+layout_mode = 2
+texture = ExtResource("11_pharaoh")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VillagerActionMenu" type="HBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin"]
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="BtnEcon" type="Button" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/VillagerActionMenu"]
+layout_mode = 2
+text = "Economic (B)"
+icon = ExtResource("12_hecon")
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="BtnMil" type="Button" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/VillagerActionMenu"]
+layout_mode = 2
+text = "Military (V)"
+icon = ExtResource("13_hmil")
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="BtnRepair" type="Button" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/VillagerActionMenu"]
+layout_mode = 2
+text = "Repair (R)"
+icon = ExtResource("14_repair")
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="SubBuildingGrid" type="VBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin"]
+visible = false
 layout_mode = 2
 
-[node name="TitleLabel" type="Label" parent="ActionPanel/VBox"]
+[node name="SubHeaderHBox" type="HBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/SubBuildingGrid"]
 layout_mode = 2
-text = "Selected: None"
 
-[node name="QueueLabel" type="Label" parent="ActionPanel/VBox"]
+[node name="SubMenuTitle" type="Label" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/SubBuildingGrid/SubHeaderHBox"]
 layout_mode = 2
-text = "Queue: 0"
+theme_override_colors/font_color = Color(1, 0.90, 0.50, 1)
+theme_override_font_sizes/font_size = 13
+text = "Economic Buildings"
 
-[node name="ButtonsHBox" type="HBoxContainer" parent="ActionPanel/VBox"]
+[node name="Spacer" type="Control" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/SubBuildingGrid/SubHeaderHBox"]
 layout_mode = 2
-theme_override_constants/separation = 10
+size_flags_horizontal = 3
 
-[node name="TrainBtn" type="Button" parent="ActionPanel/VBox/ButtonsHBox"]
+[node name="BtnBackFromSub" type="Button" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/SubBuildingGrid/SubHeaderHBox"]
 layout_mode = 2
-text = "Train Unit"
+text = "Cancel (X)"
+icon = ExtResource("15_cancel")
 
-[node name="TrainArcherBtn" type="Button" parent="ActionPanel/VBox/ButtonsHBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/SubBuildingGrid"]
 layout_mode = 2
-text = "Train Archer (40W, 30G)"
+size_flags_vertical = 3
+vertical_scroll_mode = 0
 
+[node name="BuildingButtonsHBox" type="HBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/SubBuildingGrid/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
 
+[node name="BuildingProductionMenu" type="VBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin"]
+visible = false
+layout_mode = 2
+
+[node name="ProdHeaderHBox" type="HBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/BuildingProductionMenu"]
+layout_mode = 2
+
+[node name="BuildingProdTitle" type="Label" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/BuildingProductionMenu/ProdHeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.90, 0.50, 1)
+theme_override_font_sizes/font_size = 13
+text = "Production"
+
+[node name="Spacer" type="Control" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/BuildingProductionMenu/ProdHeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnCancelProd" type="Button" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/BuildingProductionMenu/ProdHeaderHBox"]
+layout_mode = 2
+text = "Cancel"
+icon = ExtResource("15_cancel")
+
+[node name="ProdButtonsScroll" type="ScrollContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/BuildingProductionMenu"]
+layout_mode = 2
+size_flags_vertical = 3
+vertical_scroll_mode = 0
+
+[node name="ProdButtonsHBox" type="HBoxContainer" parent="BottomConsole/Margin/HBox/CenterActionBox/Margin/BuildingProductionMenu/ProdButtonsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="RightMinimapBox" type="PanelContainer" parent="BottomConsole/Margin/HBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_minimap")
+
+[node name="MinimapViewport" type="SubViewportContainer" parent="BottomConsole/Margin/HBox/RightMinimapBox"]
+layout_mode = 2
+stretch = true
+script = ExtResource("2_minimap")
+
+[node name="SubViewport" type="SubViewport" parent="BottomConsole/Margin/HBox/RightMinimapBox/MinimapViewport"]
+size = Vector2i(196, 128)
+render_target_update_mode = 4

@@ -1,3 +1,8 @@
+# Fact 1: Called by scripts/entities/base_unit.gd:370, project.godot autoload
+# Fact 2: Verified tech manager structure via Grep in scripts/autoload/tech_manager.gd
+# Fact 3: In-memory only; manages tech tree and age progression
+# Fact 4: User request: "ok nếu cần dùng animation thì dùng trong folder C:\Users\nguye\Godot_v4.7.2-stable_win64.exe\git\Age-of-Low-Poly\assets\animations nếu không có thì tự làm cho tôi dùng blender mcp và godot mcp"
+
 class_name TechManagerNode
 extends Node
 
@@ -7,8 +12,97 @@ extends Node
 
 signal tech_completed(peer_id: int, tech_id: String)
 signal building_unlocked(peer_id: int, building_type: String)
+signal age_advanced(peer_id: int, new_age: int)
+
+enum Age {
+	STONE_AGE = 0,
+	TOOL_AGE = 1,
+	BRONZE_AGE = 2,
+	IRON_AGE = 3,
+}
 
 const TECH_DATABASE: Dictionary = {
+	# Town Center (Lên Đời - 4 Kỷ Nguyên)
+	"tool_age": {
+		"name": "Tool Age",
+		"building": "town_center",
+		"cost": { ResourceSource.ResourceType.FOOD: 500 },
+		"research_time": 40.0,
+		"description": "Advance to Tool Age (Đời 2)",
+		"effects": [
+			{ "target": "advance_age", "age": Age.TOOL_AGE },
+			{ "target": "unlock_building", "building_type": "archery_range" },
+			{ "target": "unlock_building", "building_type": "stable" },
+			{ "target": "unlock_building", "building_type": "market" },
+			{ "target": "unlock_building", "building_type": "farm" }
+		]
+	},
+	"bronze_age": {
+		"name": "Bronze Age",
+		"building": "town_center",
+		"cost": { ResourceSource.ResourceType.FOOD: 800 },
+		"research_time": 50.0,
+		"description": "Advance to Bronze Age (Đời 3)",
+		"effects": [
+			{ "target": "advance_age", "age": Age.BRONZE_AGE },
+			{ "target": "unlock_building", "building_type": "temple" },
+			{ "target": "unlock_building", "building_type": "siege_workshop" },
+			{ "target": "unlock_building", "building_type": "academy" },
+			{ "target": "unlock_building", "building_type": "government_center" }
+		]
+	},
+	"iron_age": {
+		"name": "Iron Age",
+		"building": "town_center",
+		"cost": { ResourceSource.ResourceType.FOOD: 1000, ResourceSource.ResourceType.GOLD: 800 },
+		"research_time": 60.0,
+		"description": "Advance to Iron Age (Đời 4)",
+		"effects": [
+			{ "target": "advance_age", "age": Age.IRON_AGE }
+		]
+	},
+	# Nâng cấp quân sự & kinh tế
+	"axeman": {
+		"name": "Axeman Upgrade",
+		"building": "barracks",
+		"cost": { ResourceSource.ResourceType.FOOD: 100 },
+		"research_time": 25.0,
+		"description": "+5 HP & +2 Melee Attack for Infantry",
+		"effects": [
+			{ "target": "unit_stat", "unit_types": [BaseUnit.UnitType.INFANTRY], "stat": "melee_attack", "value": 2 },
+			{ "target": "unit_stat", "unit_types": [BaseUnit.UnitType.INFANTRY], "stat": "max_hp", "value": 5 }
+		]
+	},
+	"woodworking": {
+		"name": "Woodworking",
+		"building": "market",
+		"cost": { ResourceSource.ResourceType.FOOD: 120, ResourceSource.ResourceType.WOOD: 75 },
+		"research_time": 30.0,
+		"description": "+2 Villager carry capacity, +1 Archer range",
+		"effects": [
+			{ "target": "unit_stat", "unit_types": [BaseUnit.UnitType.ARCHER], "stat": "attack_range", "value": 1 }
+		]
+	},
+	"astrology": {
+		"name": "Astrology",
+		"building": "temple",
+		"cost": { ResourceSource.ResourceType.FOOD: 100, ResourceSource.ResourceType.GOLD: 150 },
+		"research_time": 35.0,
+		"description": "+30% Priest conversion speed",
+		"effects": [
+			{ "target": "unit_stat", "unit_types": [BaseUnit.UnitType.PRIEST], "stat": "conversion_rate", "value": 30 }
+		]
+	},
+	"engineering": {
+		"name": "Engineering",
+		"building": "siege_workshop",
+		"cost": { ResourceSource.ResourceType.WOOD: 200, ResourceSource.ResourceType.GOLD: 100 },
+		"research_time": 40.0,
+		"description": "+2 Siege Catapult attack range",
+		"effects": [
+			{ "target": "unit_stat", "unit_types": [BaseUnit.UnitType.SIEGE], "stat": "attack_range", "value": 2 }
+		]
+	},
 	# Storage Pit (BM)
 	"toolworking": {
 		"name": "Toolworking",
@@ -72,6 +166,9 @@ var unit_modifiers: Dictionary = {}
 # { peer_id: { building_type: bool } }
 var unlocked_buildings: Dictionary = {}
 
+# { peer_id: Age }
+var player_ages: Dictionary = {}
+
 func _ready() -> void:
 	init_player(1)
 
@@ -82,6 +179,11 @@ func init_player(peer_id: int) -> void:
 		unit_modifiers[peer_id] = {}
 	if not unlocked_buildings.has(peer_id):
 		unlocked_buildings[peer_id] = {}
+	if not player_ages.has(peer_id):
+		player_ages[peer_id] = Age.STONE_AGE
+
+func get_player_age(peer_id: int) -> int:
+	return player_ages.get(peer_id, Age.STONE_AGE)
 
 func is_tech_researched(peer_id: int, tech_id: String) -> bool:
 	if not researched_techs.has(peer_id):
@@ -104,6 +206,13 @@ func can_research(peer_id: int, tech_id: String) -> bool:
 	if not TECH_DATABASE.has(tech_id):
 		return false
 	if is_tech_researched(peer_id, tech_id):
+		return false
+	var curr_age := get_player_age(peer_id)
+	if tech_id == "tool_age" and curr_age != Age.STONE_AGE:
+		return false
+	if tech_id == "bronze_age" and curr_age != Age.TOOL_AGE:
+		return false
+	if tech_id == "iron_age" and curr_age != Age.BRONZE_AGE:
 		return false
 	return true
 
@@ -154,6 +263,10 @@ func _apply_tech_effects(peer_id: int, tech_id: String) -> void:
 			var b_type: String = effect.get("building_type", "")
 			unlocked_buildings[peer_id][b_type] = true
 			building_unlocked.emit(peer_id, b_type)
+		elif target == "advance_age":
+			var new_age: int = effect.get("age", 0)
+			player_ages[peer_id] = new_age
+			age_advanced.emit(peer_id, new_age)
 
 	tech_completed.emit(peer_id, tech_id)
 
@@ -161,6 +274,7 @@ func get_sync_state() -> Dictionary:
 	return {
 		"researched_techs": researched_techs,
 		"unlocked_buildings": unlocked_buildings,
+		"player_ages": player_ages,
 	}
 
 func apply_sync_state(state: Dictionary) -> void:
@@ -170,3 +284,6 @@ func apply_sync_state(state: Dictionary) -> void:
 		init_player(pid)
 		for tech_id in r_techs[pid_str]:
 			_apply_tech_effects(pid, tech_id)
+	var ages: Dictionary = state.get("player_ages", {})
+	for pid_str in ages:
+		player_ages[int(pid_str)] = ages[pid_str]
